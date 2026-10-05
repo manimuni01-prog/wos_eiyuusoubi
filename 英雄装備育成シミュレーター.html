@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="ホワイトアウトサバイバルの通常・神話英雄装備の育成素材と遠征効果を比較する、オフライン対応シミュレーター。">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>英雄装備 育成シミュレーター</title>
+<style>
+:root { --bg:#eef2f5; --surface:#fff; --ink:#182f40; --muted:#526673; --line:#cbd6dd; --primary:#164e70; --primary-hover:#103c58; --soft:#eaf1f6; --gold:#785008; --gold-bg:#fff3d8; --mythic:#a7392d; --mythic-bg:#fcebe7; --green:#236644; --green-bg:#e9f4ed; --warning:#895211; --warning-bg:#fff3dc; --error:#a62b29; --error-bg:#fff0ee; --radius:16px; --small:8px; --gap:24px; --shadow:0 4px 20px #18334608; }
+@media(prefers-color-scheme:dark) { :root { --bg:#111c25; --surface:#1b2a36; --ink:#e8f0f5; --muted:#b3c3cd; --line:#405462; --primary:#9bd0ee; --primary-hover:#b7e1f8; --soft:#233744; --gold:#f1c675; --gold-bg:#423621; --mythic:#ffb3a7; --mythic-bg:#482e2b; --green:#9ddeba; --green-bg:#233d31; --warning:#f6ca89; --warning-bg:#413324; --error:#ffb5ae; --error-bg:#482b2c; --shadow:none; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.7 "Yu Gothic UI","Hiragino Sans",sans-serif; }
+button,input,select,textarea { font:inherit; }
+button,select { cursor:pointer; }
+button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
+:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+a { color:var(--primary); text-underline-offset:3px; overflow-wrap:anywhere; }
+a:hover { text-decoration-thickness:2px; }
+button { border:1px solid var(--line); padding:8px 16px; border-radius:var(--small); min-height:44px; background:var(--surface); color:var(--ink); transition:background .15s,transform .15s; }
+button:hover:not(:disabled) { background:var(--soft); }
+button:active:not(:disabled) { transform:translateY(1px); }
+button:disabled { opacity:.5; cursor:default; }
+button.primary { color:var(--surface); background:var(--primary); border-color:var(--primary); font-weight:700; }
+button.primary:hover:not(:disabled) { background:var(--primary-hover); }
+input,select { width:100%; min-height:48px; padding:8px 12px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:var(--small); }
+input:hover,select:hover { border-color:var(--muted); }
+input[aria-invalid=true] { border-color:var(--error); }
+input:disabled,select:disabled { background:var(--bg); color:var(--muted); cursor:default; }
+input { font-variant-numeric:tabular-nums; }
+header { border-top:4px solid var(--primary); padding:32px 24px 24px; max-width:1200px; margin:auto; }
+.brand { font-size:11px; letter-spacing:.15em; color:var(--muted); font-weight:700; }
+.header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
+h1 { font-size:clamp(24px,3vw,32px); line-height:1.4; margin:8px 0; letter-spacing:.02em; }
+h2 { font-size:18px; margin:0 0 16px; }
+h3 { margin:0; font-size:16px; }
+p { margin:8px 0 16px; }
+.subtitle { color:var(--muted); margin:0; }
+.version { white-space:nowrap; font-size:12px; color:var(--muted); padding-top:16px; }
+main { max-width:1200px; margin:auto; padding:0 24px 32px; }
+.workspace { display:grid; grid-template-columns:360px minmax(0,1fr); gap:24px; align-items:start; }
+.panel { border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:24px; box-shadow:var(--shadow); min-width:0; }
+.input-panel { position:sticky; top:24px; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+label { display:block; font-size:13px; font-weight:600; margin-bottom:8px; }
+.field { min-width:0; }
+.state-section { border:0; border-top:1px solid var(--line); padding:16px 0 0; margin:24px 0 0; min-width:0; }
+legend { padding:0 8px 0 0; font-weight:700; }
+.state-fields { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; }
+.state-fields .wide { grid-column:1/-1; }
+.ref-fields { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.helper { color:var(--muted); font-size:12px; margin:8px 0 0; }
+.actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:24px; }
+.actions .primary { flex:1; }
+.presets { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+.presets button { font-size:12px; padding:8px 12px; }
+.result-stack { display:grid; gap:24px; }
+.result-heading { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:16px; }
+.result-heading h2 { margin:0; }
+.badge { display:inline-block; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:700; }
+.badge.normal { color:var(--gold); background:var(--gold-bg); }
+.badge.mythic { color:var(--mythic); background:var(--mythic-bg); }
+.badge.info { color:var(--primary); background:var(--soft); }
+.transition { display:grid; grid-template-columns:1fr auto 1fr; gap:16px; padding-bottom:16px; border-bottom:1px solid var(--line); align-items:center; }
+.transition small { display:block; color:var(--muted); }
+.transition strong { display:block; font-size:18px; font-variant-numeric:tabular-nums; }
+.transition span { font-size:13px; }
+.arrow { font-size:24px; color:var(--muted); }
+.metrics { display:grid; grid-template-columns:1fr 1fr; margin-top:8px; }
+.metric { padding:16px 0; min-width:0; }
+.metric:nth-child(even) { padding-left:24px; border-left:1px solid var(--line); }
+.metric:nth-child(-n+2) { border-bottom:1px solid var(--line); }
+.metric-label { font-size:13px; color:var(--muted); }
+.metric-value { font-size:30px; font-weight:750; line-height:1.4; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+.metric-value small { margin-left:4px; font-size:13px; font-weight:400; letter-spacing:0; }
+.gear-breakdown { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; margin-top:8px; color:var(--muted); }
+.notice { border-left:3px solid var(--warning); background:var(--warning-bg); color:var(--warning); padding:12px 16px; font-size:13px; border-radius:0 8px 8px 0; margin:16px 0 0; }
+.notice.error { border-color:var(--error); color:var(--error); background:var(--error-bg); margin:0; }
+.notice.error ul { margin:0; padding-left:20px; }
+.status { min-height:22px; color:var(--muted); font-size:12px; margin:8px 0 0; }
+.table-wrap { overflow:auto; }
+table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; font-size:14px; }
+th,td { padding:12px 8px; border-bottom:1px solid var(--line); text-align:right; }
+th:first-child,td:first-child { text-align:left; padding-left:0; }
+th:last-child,td:last-child { padding-right:0; }
+thead th { color:var(--muted); font-size:12px; font-weight:600; }
+tbody tr:last-child td { border-bottom:0; }
+.gain { color:var(--green); font-weight:700; }
+.stat-detail { margin-top:16px; padding-top:16px; border-top:1px solid var(--line); }
+summary { cursor:pointer; min-height:44px; display:list-item; color:var(--primary); font-size:13px; padding:8px 0; }
+summary:hover { text-decoration:underline; }
+.route { list-style:none; padding:0; margin:0; }
+.route li { position:relative; padding:0 0 24px 28px; border-left:1px solid var(--line); margin-left:6px; }
+.route li:last-child { padding-bottom:0; border-left-color:transparent; }
+.route li::before { content:''; position:absolute; width:11px; height:11px; border-radius:50%; background:var(--primary); left:-6px; top:7px; border:2px solid var(--surface); }
+.route li.gate::before,.route li.ascend::before { background:var(--mythic); }
+.route li.forge::before { background:var(--gold); }
+.route-title { font-weight:650; font-size:14px; }
+.route-meta { font-size:12px; color:var(--muted); margin:4px 0 0; }
+.route-bonus { font-size:12px; color:var(--green); margin-top:4px; }
+.empty { padding:32px 8px; color:var(--muted); text-align:center; }
+.sources { margin-top:24px; }
+.sources p,.sources li { font-size:13px; }
+.sources ul { padding-left:20px; }
+.sources-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.sources h3 { margin:16px 0 8px; }
+.audit-table { min-width:420px; font-size:12px; }
+.audit-table th,.audit-table td { padding:8px; }
+footer { text-align:center; margin:24px 0 0; color:var(--muted); font-size:12px; }
+[hidden] { display:none!important; }
+.spinner { display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .6s linear infinite; margin-right:8px; vertical-align:-2px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { * { transition:none!important; animation:none!important; } }
+@media(max-width:900px) { .workspace { grid-template-columns:1fr; } .input-panel { position:static; } .state-container { display:grid; grid-template-columns:1fr 1fr; gap:24px; } .state-section { margin-top:16px; } }
+@media(max-width:540px) { header { padding:24px 16px 16px; } main { padding:0 16px 24px; } .header-row { display:block; } .version { padding:0; margin-top:8px; } .panel { padding:16px; } .state-container { grid-template-columns:1fr; gap:8px; } .result-stack,.workspace { gap:16px; } .sources-grid { grid-template-columns:1fr; gap:0; } .metric-value { font-size:26px; } .metric:nth-child(even) { padding-left:16px; } .transition { gap:8px; } .transition strong { font-size:17px; } .result-heading { align-items:flex-start; } th,td { font-size:12px; padding:12px 4px; } }
+@media print { body { background:white; color:#182f40; } header,main { max-width:none; } .workspace { display:block; } .input-panel,.actions,.sources,footer { display:none; } .panel { box-shadow:none; margin-bottom:16px; break-inside:avoid; } .route li { break-inside:avoid; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">WHITEOUT SURVIVAL / HERO GEAR</div>
+  <div class="header-row"><div><h1>英雄装備 育成シミュレーター</h1><p class="subtitle">1部位の育成素材と、遠征で増える効果を確認。</p></div><div class="version">数値確認：2026年10月5日</div></div>
+</header>
+<main>
+<div class="workspace">
+<section class="panel input-panel" aria-labelledby="input-title">
+  <h2 id="input-title">育成する装備</h2>
+  <form id="gear-form" novalidate>
+  <div class="two">
+    <div class="field"><label for="troop">兵種</label><select id="troop"><option value="infantry">盾兵</option><option value="lancer">槍兵</option><option value="marksman">弓兵</option></select></div>
+    <div class="field"><label for="slot">部位</label><select id="slot"><option value="goggles">ゴーグル（頭）</option><option value="gloves">グローブ（腕）</option><option value="belt">ベルト（腰）</option><option value="boots">ブーツ（足）</option></select></div>
+  </div>
+  <div class="state-container">
+  <fieldset class="state-section"><legend>現在</legend>
+    <div class="state-fields">
+      <div class="wide"><label for="current-rarity">装備種類</label><select id="current-rarity"><option value="normal">通常（レジェンド・金）</option><option value="mythic">神話（赤）</option></select></div>
+      <div><label for="current-level">装備レベル</label><input id="current-level" type="text" inputmode="numeric" maxlength="4" aria-describedby="current-help" autocomplete="off"></div>
+      <div><label for="current-mastery">精錬レベル / サブ段階</label><div class="ref-fields"><select id="current-mastery" aria-label="現在の精錬レベル"></select><select id="current-sub" aria-label="現在の精錬サブ段階"></select></div></div>
+    </div><p class="helper" id="current-help"></p>
+  </fieldset>
+  <fieldset class="state-section"><legend>目標</legend>
+    <div class="state-fields">
+      <div class="wide"><label for="target-rarity">装備種類</label><select id="target-rarity"><option value="normal">通常（レジェンド・金）</option><option value="mythic">神話（赤）</option></select></div>
+      <div><label for="target-level">装備レベル</label><input id="target-level" type="text" inputmode="numeric" maxlength="4" aria-describedby="target-help" autocomplete="off"></div>
+      <div><label for="target-mastery">精錬レベル / サブ段階</label><div class="ref-fields"><select id="target-mastery" aria-label="目標の精錬レベル"></select><select id="target-sub" aria-label="目標の精錬サブ段階"></select></div></div>
+    </div><p class="helper" id="target-help"></p>
+    <button type="button" id="fix-mastery" hidden style="margin-top:8px;font-size:12px">目標を必要な精錬に合わせる</button>
+  </fieldset>
+  </div>
+  <div class="actions"><button class="primary" id="calculate" type="submit">計算する</button><button type="button" id="save" disabled>結果を保存</button></div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <div class="presets"><button type="button" id="preset-example">入力例：通常82 → 神話65</button><button type="button" id="preset-max">神話1 → 100</button></div>
+  </form>
+  <p class="helper">通常は金品質のレジェンド装備を対象とします。神話化でLv1になり、精錬は引き継ぎます。配能突破は目標レベルから自動判定します。</p>
+  <details style="margin-top:16px"><summary>入力をファイルで保存・読み込み</summary><div class="actions" style="margin-top:8px"><button type="button" id="export">入力を保存</button><button type="button" id="import">入力を読み込む</button><input id="file" type="file" accept=".json,application/json" hidden></div><p class="helper">保存したJSONファイルを、この画面にドラッグして読み込むこともできます。</p></details>
+</section>
+<div class="result-stack">
+  <div id="errors" class="notice error" role="alert" hidden></div>
+  <div id="placeholder" class="panel empty" hidden>現在と目標を入力すると、育成結果を表示します。</div>
+  <section class="panel" id="cost-panel" aria-labelledby="cost-title">
+    <div class="result-heading"><h2 id="cost-title">必要な素材</h2><span class="badge info" id="equipment-label"></span></div>
+    <div class="transition" id="transition"></div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">強化経験値</div><div class="metric-value"><span id="cost-xp">—</span><small>XP</small></div></div>
+      <div class="metric"><div class="metric-label">精錬エナジー源石</div><div class="metric-value"><span id="cost-stones">—</span><small>個</small></div></div>
+      <div class="metric"><div class="metric-label">ミスリル</div><div class="metric-value"><span id="cost-mithril">—</span><small>個</small></div></div>
+      <div class="metric"><div class="metric-label">素材用レジェンド英雄装備</div><div class="metric-value"><span id="cost-gear">—</span><small>個</small></div><div class="gear-breakdown" id="gear-breakdown"></div></div>
+    </div>
+    <p class="helper">現在レベル・精錬サブ段階の完了時点から計算します。レベル途中の投入済みXP、育成対象の装備1個は必要素材数に含みません。所持素材はバッグ欄で不足数に反映します。</p>
+    <p class="notice" id="xp-note" hidden>神話Lv21〜39のXPは公式個別表を採用（20→21：3,450、21→22：3,500）。神話Lv1→100の合計は501,050 XPです。公式ページの集計502,000 XPとは950 XP差があり、集計側は未解決です。</p>
+  </section>
+  <section class="panel" id="bag-panel" aria-labelledby="bag-title">
+    <h2 id="bag-title">バッグ · アイテム所持数</h2>
+    <p class="helper">使える素材の所持数を入力すると、不足数を自動計算します。強化経験値は素材の合計XPを入力してください。素材装備は育成対象を除いた個数です。</p>
+    <div class="two" style="margin-top:16px">
+      <div><label for="bag-xp">強化経験値（XP）</label><input id="bag-xp" type="text" inputmode="numeric" autocomplete="off"></div>
+      <div><label for="bag-stones">精錬エナジー源石（個）</label><input id="bag-stones" type="text" inputmode="numeric" autocomplete="off"></div>
+      <div><label for="bag-mithril">ミスリル（個）</label><input id="bag-mithril" type="text" inputmode="numeric" autocomplete="off"></div>
+      <div><label for="bag-gear">素材用レジェンド装備（個）</label><input id="bag-gear" type="text" inputmode="numeric" autocomplete="off"></div>
+    </div>
+    <p id="bag-error" role="alert" style="color:var(--error)"></p>
+    <div id="bag-summary"><h3 id="bag-status"></h3><div class="table-wrap"><table aria-label="所持素材と不足数"><thead><tr><th>素材</th><th>所持</th><th>不足</th></tr></thead><tbody id="bag-table"></tbody></table></div></div>
+    <p class="helper">所持数は自動保存されます。必要素材の総数や育成ルートは変わりません。計算してもバッグの素材は消費しません。</p>
+  </section>
+  <section class="panel" id="stats-panel" aria-labelledby="stats-title">
+    <div class="result-heading"><h2 id="stats-title">遠征ステータスの比較</h2><span class="badge info">この1部位の効果</span></div>
+    <div class="table-wrap"><table aria-label="遠征ステータスの現在、目標、差分"><thead><tr><th>ステータス</th><th>現在</th><th>目標</th><th>差分</th></tr></thead><tbody id="stats-table"></tbody></table></div>
+    <p class="helper">差分はパーセントポイント（pt）。部隊の総ステータスや、実際のダメージ増加率ではありません。</p>
+    <details class="stat-detail"><summary>装備本体・精錬・配能の内訳</summary><div class="table-wrap"><table aria-label="効果の内訳"><thead><tr><th>要素</th><th>現在</th><th>目標</th><th>差分</th></tr></thead><tbody id="detail-table"></tbody></table></div><p class="helper">本体の殺傷力／HP ×（1＋精錬上昇率）で装備効果を算出。配能の攻撃／防御は別の追加効果として表示し、精錬倍率を掛けません。</p></details>
+    <p class="notice">装備本体の殺傷力／HPは、公式Wiki掲載の公開計算資料に基づく参考値です。全レベルの最新ゲーム内実測と丸め方は未確認のため、表示に小さな差が出る可能性があります。配能の攻撃／防御は公式Wikiのゲーム画面で確認済みです。</p>
+  </section>
+  <section class="panel" id="route-panel" aria-labelledby="route-title"><div class="result-heading"><h2 id="route-title">育成ルート</h2><span class="helper" id="route-count"></span></div><ol class="route" id="route"></ol></section>
+</div>
+</div>
+<section class="panel sources" id="sources"><details><summary>数値の根拠・未確定点・素材表を見る</summary>
+  <div class="sources-grid">
+  <div><h3>採用した資料</h3><ul>
+    <li><a href="https://www.whiteoutsurvival.wiki/hero-gears/hero-gear/" target="_blank" rel="noopener noreferrer">公式Wiki：Hero Gear</a> — レベル別XP、精錬の全サブ段階・倍率・消費素材。表のページ切り替えを含めて確認。</li>
+    <li><a href="https://www.whiteoutsurvival.wiki/ja/hero-gears/%E8%8B%B1%E9%9B%84%E8%A3%85%E5%82%99/" target="_blank" rel="noopener noreferrer">公式Wiki：英雄装備</a> — 練磨条件、精錬の解放条件。</li>
+    <li><a href="https://www.whiteoutsurvival.wiki/ja/hero-gears/%E8%8B%B1%E9%9B%84%E8%A3%85%E5%82%99%E7%A5%9E%E8%A9%B1/" target="_blank" rel="noopener noreferrer">公式Wiki：英雄装備（神話）</a> — 配能、精錬上限条件、部位ごとのゲーム画面、集計値。</li>
+    <li><a href="https://docs.google.com/spreadsheets/d/112Gi0_kr85KHK-YOEG1zVsz33O3A7HLQH4ccONHZFRo/edit?usp=sharing" target="_blank" rel="noopener noreferrer">公式Wiki掲載：heros xp/gear calculator</a> — 装備本体の％効果。RAWのレベル別数値を採用した参考値。通常Lv100＝50%、神話Lv100＝100%（精錬前）。</li>
+    <li><a href="https://papazot.com/en/hero-gear" target="_blank" rel="noopener noreferrer">PapaZot：Hero Gear DB</a> — 部位・素材・XPを照合。神話Lv21〜39は公式個別表と不一致のため、DBのXPを不採用。</li>
+  </ul></div>
+  <div><h3>計算上の区別</h3><ul>
+    <li>日本語の通常レジェンド＝金、神話＝赤。英語のMythic＝金、Legendary＝赤と名称が逆なので、色と段階で照合しています。</li>
+    <li>本体の遠征効果：ゴーグル・ブーツは殺傷力、グローブ・ベルトはHP。</li>
+    <li>配能：ゴーグル・ベルトは20で攻撃+20%、60で防御+30%、100で攻撃+50%。グローブ・ブーツは攻撃と防御が逆。</li>
+    <li>Lv40・80は素材のみ集計。探検の数値は表示・比較に含めません。</li>
+  </ul><h3>未確定・対象外</h3><ul>
+    <li>公式XP集計と個別表の差：950 XP。個別表を優先し、20→21と21→22はユーザー確認とも一致。</li>
+    <li>本体の全レベル実測、内部精度、ゲーム内丸め順序は未確認。独自の補間・推測は行いません。</li>
+    <li>大溶鉱炉・サーバー経過日数による機能解放は判定対象外。ゲーム内で解放済みであることが前提です。</li>
+    <li>専用装備、低レア装備、分解・素材還元、課金換算は対象外。</li>
+  </ul></div>
+  </div>
+  <h3>配能の突破素材</h3><div class="table-wrap"><table class="audit-table"><thead><tr><th>神話レベル</th><th>必要精錬</th><th>ミスリル</th><th>素材装備</th></tr></thead><tbody id="gates-table"></tbody></table></div>
+  <details><summary>精錬サブ段階の消費素材</summary><p class="helper">各行は「その状態へ到達する時」の消費。通常の精錬上限は10-0。神話化後は20-0まで計算します。</p><div class="table-wrap"><table class="audit-table"><thead><tr><th>精錬の進行</th><th>源石</th><th>素材装備</th><th>本体への上昇率</th></tr></thead><tbody id="forge-table"></tbody></table></div></details>
+  <details><summary>レベル別の強化XP</summary><p class="helper">到達レベルへの必要XP。神話Lv1は練磨、Lv20の倍数は配能で進むため、XP消費は0です。</p><div class="table-wrap"><table class="audit-table"><thead><tr><th>到達レベル</th><th>通常 XP</th><th>神話 XP</th></tr></thead><tbody id="xp-table"></tbody></table></div></details>
+</details></section>
+<footer>オフラインで計算できます。入力はこの端末内で処理・保存されます。非公式ツールです。</footer>
+</main>
+<noscript><p class="notice error">計算にはJavaScriptを有効にしてください。</p></noscript>
+<script id="model-script">
+/* 英雄装備の計算モデル。遠征の装備本体と配能を別に保持する。 */
+const GearModel = (() => {
+  'use strict';
+  const gates = Object.freeze([
+    { level: 20, mastery: 11, mithril: 10, gear: 3, bonus: 20 },
+    { level: 40, mastery: 12, mithril: 20, gear: 5, bonus: 0 },
+    { level: 60, mastery: 13, mithril: 30, gear: 5, bonus: 30 },
+    { level: 80, mastery: 14, mithril: 40, gear: 10, bonus: 0 },
+    { level: 100, mastery: 15, mithril: 50, gear: 10, bonus: 50 }
+  ]);
+  // 各精錬レベルから次レベルに進む5段階の素材装備。公式個別表を転記。
+  const gearStages = Object.freeze({
+    10: [0, 0, 0, 0, 1], 11: [0, 0, 1, 0, 1],
+    12: [0, 1, 0, 1, 1], 13: [0, 1, 1, 1, 1],
+    14: [1, 1, 1, 1, 1], 15: [1, 1, 1, 1, 2],
+    16: [1, 1, 2, 1, 2], 17: [1, 2, 1, 2, 2],
+    18: [1, 2, 2, 2, 2], 19: [2, 2, 2, 2, 2]
+  });
+  const troopNames = { infantry: '盾兵', lancer: '槍兵', marksman: '弓兵' };
+  const slotNames = { goggles: 'ゴーグル', gloves: 'グローブ', belt: 'ベルト', boots: 'ブーツ' };
+  const integer = value => {
+    const text = String(value ?? '').normalize('NFKC').trim();
+    return /^\d+$/.test(text) ? Number(text) : NaN;
+  };
+  const normalize = input => ({
+    troop: input.troop, slot: input.slot,
+    current: normalizeState(input.current), target: normalizeState(input.target)
+  });
+  const normalizeState = value => ({
+    rarity: value?.rarity, level: integer(value?.level),
+    mastery: integer(value?.mastery), sub: integer(value?.sub)
+  });
+  const minimumMastery = s => s.rarity === 'mythic' ? 10 + Math.floor(s.level / 20) : 0;
+  const masteryRank = s => s.mastery * 5 + s.sub;
+  const levelRank = s => s.rarity === 'mythic' ? 100 + s.level : s.level;
+  const forgeLabel = s => `${s.mastery}-${s.sub}`;
+  const stateLabel = s => `${s.rarity === 'mythic' ? '神話' : '通常'} Lv.${s.level} / 精錬${forgeLabel(s)}`;
+  function validateState(s, prefix) {
+    const errors = [];
+    if (!['normal', 'mythic'].includes(s.rarity)) return [`${prefix}の装備種類を選択してください。`];
+    const minLevel = s.rarity === 'mythic' ? 1 : 0;
+    if (!Number.isInteger(s.level) || s.level < minLevel || s.level > 100) errors.push(`${prefix}の装備レベルは${minLevel}〜100の整数で入力してください。`);
+    const minMastery = s.rarity === 'mythic' ? 10 : 0;
+    const maxMastery = s.rarity === 'mythic' ? 20 : 10;
+    if (!Number.isInteger(s.mastery) || s.mastery < minMastery || s.mastery > maxMastery) errors.push(`${prefix}の精錬レベルは${minMastery}〜${maxMastery}で指定してください。`);
+    if (!Number.isInteger(s.sub) || s.sub < 0 || s.sub > 4) errors.push(`${prefix}の精錬サブ段階は0〜4で指定してください。`);
+    if ((s.mastery < 4 || s.mastery === maxMastery) && s.sub !== 0) errors.push(`${prefix}の精錬${s.mastery}ではサブ段階は0です。`);
+    if (s.rarity === 'normal' && s.level < 20 && s.mastery > 0) errors.push(`${prefix}：精錬には通常装備Lv20以上が必要です。`);
+    if (s.rarity === 'mythic' && Number.isInteger(s.level) && s.mastery < minimumMastery(s)) errors.push(`${prefix}の神話Lv${s.level}には精錬${minimumMastery(s)}以上が必要です。`);
+    return errors;
+  }
+  function validate(input) {
+    const errors = [];
+    if (!Object.hasOwn(troopNames, input.troop)) errors.push('兵種を選択してください。');
+    if (!Object.hasOwn(slotNames, input.slot)) errors.push('部位を選択してください。');
+    errors.push(...validateState(input.current, '現在'), ...validateState(input.target, '目標'));
+    if (!errors.length) {
+      if (levelRank(input.target) < levelRank(input.current)) errors.push('目標は現在以上の育成状態を指定してください。神話から通常には戻せません。');
+      if (masteryRank(input.target) < masteryRank(input.current)) errors.push('目標の精錬は現在以上にしてください。精錬の再加工・返却は計算対象外です。');
+    }
+    return errors;
+  }
+  function normalXP(level) {
+    if (level <= 29) return 5 * level + 5;
+    if (level <= 39) return 160 + (level - 30) * 10;
+    if (level <= 59) return 270 + (level - 40) * 20;
+    if (level <= 69) return 680 + (level - 60) * 30;
+    if (level <= 79) return 990 + (level - 70) * 40;
+    return 1400 + (level - 80) * 50;
+  }
+  function mythicXP(level) {
+    if (level === 1 || level % 20 === 0) return 0;
+    if (level <= 19) return 2500 + (level - 2) * 50;
+    if (level <= 39) return 3450 + (level - 21) * 50;
+    if (level <= 59) return 4450 + (level - 41) * 50;
+    if (level <= 79) return 5500 + (level - 61) * 100;
+    return 7500 + (level - 81) * 100;
+  }
+  function xpBetween(rarity, from, to) {
+    let total = 0;
+    for (let level = from + 1; level <= to; level++) total += rarity === 'mythic' ? mythicXP(level) : normalXP(level);
+    return total;
+  }
+  function forgeSteps(from, to) {
+    const steps = [];
+    let mastery = from.mastery;
+    let sub = from.sub;
+    while (mastery * 5 + sub < masteryRank(to)) {
+      const stones = mastery < 4 ? (mastery + 1) * 10 : (mastery + 1) * 2;
+      const gear = gearStages[mastery]?.[sub] ?? 0;
+      const before = { mastery, sub };
+      if (mastery < 4 || sub === 4) { mastery++; sub = 0; } else { sub++; }
+      steps.push({ from: before, to: { mastery, sub }, stones, gear });
+    }
+    return steps;
+  }
+  function bonusAt(level, slot) {
+    const headGroup = slot === 'goggles' || slot === 'belt';
+    let attack = 0;
+    let defense = 0;
+    for (const gate of gates) {
+      if (level < gate.level || !gate.bonus) continue;
+      const isAttack = gate.level === 60 ? !headGroup : headGroup;
+      if (isAttack) attack += gate.bonus; else defense += gate.bonus;
+    }
+    return { attack, defense };
+  }
+  function statsAt(s, slot, data) {
+    const base = s.rarity === 'mythic' ? data.mythicStats[s.level] : data.normalStats[s.level];
+    const multiplier = (s.mastery * 10 + s.sub * 2) / 100;
+    const forge = base * multiplier;
+    const body = base + forge;
+    const stat = slot === 'goggles' || slot === 'boots' ? 'lethality' : 'health';
+    const bonus = s.rarity === 'mythic' ? bonusAt(s.level, slot) : { attack: 0, defense: 0 };
+    return { base, forge, body, multiplier, stat, ...bonus, lethality: stat === 'lethality' ? body : 0, health: stat === 'health' ? body : 0 };
+  }
+  function calculate(raw, data) {
+    const input = normalize(raw);
+    const errors = validate(input);
+    if (errors.length) return { input, errors };
+    const { current, target, slot } = input;
+    const costs = { xp: 0, stones: 0, mithril: 0, ascensionGear: 0, gateGear: 0, forgeGear: 0, totalGear: 0 };
+    const route = [];
+    let working = { ...current };
+    const addForge = destination => {
+      const steps = forgeSteps(working, destination);
+      if (!steps.length) return;
+      const stones = steps.reduce((sum, s) => sum + s.stones, 0);
+      const gear = steps.reduce((sum, s) => sum + s.gear, 0);
+      route.push({ kind: 'forge', text: `精錬 ${forgeLabel(working)} → ${forgeLabel(destination)}`, xp: 0, stones, gear, mithril: 0, steps });
+      costs.stones += stones;
+      costs.forgeGear += gear;
+      working.mastery = destination.mastery;
+      working.sub = destination.sub;
+    };
+    const addEnhance = level => {
+      if (level <= working.level) return;
+      const xp = xpBetween(working.rarity, working.level, level);
+      route.push({ kind: 'enhance', text: `${working.rarity === 'mythic' ? '神話' : '通常'} Lv.${working.level} → ${level}`, xp, stones: 0, gear: 0, mithril: 0 });
+      costs.xp += xp;
+      working.level = level;
+    };
+    if (current.rarity === 'normal' && target.rarity === 'mythic') {
+      addEnhance(100);
+      addForge({ mastery: 10, sub: 0 });
+      route.push({ kind: 'ascend', text: '神話化（練磨）：通常Lv100 → 神話Lv1', xp: 0, stones: 0, mithril: 0, gear: 2 });
+      costs.ascensionGear = 2;
+      working = { ...working, rarity: 'mythic', level: 1 };
+    }
+    if (target.rarity === 'mythic') {
+      for (const gate of gates) {
+        if (gate.level <= working.level || gate.level > target.level) continue;
+        addEnhance(gate.level - 1);
+        if (working.mastery < gate.mastery) addForge({ mastery: gate.mastery, sub: 0 });
+        const before = bonusAt(gate.level - 1, slot);
+        const after = bonusAt(gate.level, slot);
+        const detail = gate.bonus ? `遠征${after.attack > before.attack ? '攻撃力' : '防御力'} +${gate.bonus}%` : '遠征への追加ボーナスなし';
+        route.push({ kind: 'gate', text: `配能突破：神話Lv.${gate.level - 1} → ${gate.level}`, detail, xp: 0, stones: 0, mithril: gate.mithril, gear: gate.gear });
+        costs.mithril += gate.mithril;
+        costs.gateGear += gate.gear;
+        working.level = gate.level;
+      }
+    }
+    addEnhance(target.level);
+    addForge(target);
+    costs.totalGear = costs.ascensionGear + costs.gateGear + costs.forgeGear;
+    const before = statsAt(current, slot, data);
+    const after = statsAt(target, slot, data);
+    const delta = Object.fromEntries(['base', 'forge', 'body', 'attack', 'defense', 'lethality', 'health'].map(key => [key, after[key] - before[key]]));
+    return { input, errors: [], costs, route, before, after, delta };
+  }
+  return Object.freeze({ gates, troopNames, slotNames, normalize, validate, validateState, minimumMastery, normalXP, mythicXP, xpBetween, forgeSteps, bonusAt, statsAt, calculate, stateLabel, forgeLabel });
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = GearModel;
+
+</script>
+<script id="data-script">
+const GearData = Object.freeze({"normalStats": [3.33, 3.8, 4.26, 4.73, 5.2, 5.66, 6.13, 6.6, 7.06, 7.53, 8.0, 8.46, 8.93, 9.4, 9.86, 10.33, 10.8, 11.26, 11.73, 12.2, 12.66, 13.13, 13.6, 14.06, 14.53, 15.0, 15.4636, 15.9302769230769, 16.3969538461538, 16.8636307692308, 17.3303076923077, 17.7969846153846, 18.2636615384615, 18.7303384615385, 19.1970153846154, 19.6636923076923, 20.1303692307692, 20.5970461538462, 21.0637230769231, 21.5304, 21.9970769230769, 22.4637538461538, 22.9304307692308, 23.3971076923077, 23.8637846153846, 24.3304615384615, 24.7971384615385, 25.2638153846154, 25.7304923076923, 26.1971692307692, 26.6638461538462, 27.1305230769231, 27.5972, 28.0638769230769, 28.5305538461538, 28.9972307692308, 29.4639076923077, 29.9305846153846, 30.3972615384615, 30.8639384615385, 31.3306153846154, 31.7972923076923, 32.2639692307692, 32.7306461538461, 33.1973230769231, 33.664, 34.1306769230769, 34.5973538461538, 35.0640307692308, 35.5307076923077, 35.9973846153846, 36.4640615384615, 36.9307384615385, 37.3974153846154, 37.8640923076923, 38.3307692307692, 38.7974461538461, 39.2641230769231, 39.7308, 40.1974769230769, 40.6641538461538, 41.1308307692308, 41.5975076923077, 42.0641846153846, 42.5308615384615, 42.9975384615385, 43.4642153846154, 43.9308923076923, 44.3975692307692, 44.8642461538461, 45.3309230769231, 45.7976, 46.2642769230769, 46.7309538461538, 47.1976307692308, 47.6643076923077, 48.1309846153846, 48.5976615384615, 49.0643384615385, 49.5310153846154, 50.0], "mythicStats": [null, 50.5, 51.0, 51.5, 52.0, 52.5, 53.0, 53.5, 54.0, 54.5, 55.0, 55.5, 56.0, 56.5, 57.0, 57.5, 58.0, 58.5, 59.0, 59.5, 60.0, 60.5, 61.0, 61.5, 62.0, 62.5, 63.0, 63.5, 64.0, 64.5, 65.0, 65.5, 66.0, 66.5, 67.0, 67.5, 68.0, 68.5, 69.0, 69.5, 70.0, 70.5, 71.0, 71.5, 72.0, 72.5, 73.0, 73.5, 74.0, 74.5, 75.0, 75.5, 76.0, 76.5, 77.0, 77.5, 78.0, 78.5, 79.0, 79.5, 80.0, 80.5, 81.0, 81.5, 82.0, 82.5, 83.0, 83.5, 84.0, 84.5, 85.0, 85.5, 86.0, 86.5, 87.0, 87.5, 88.0, 88.5, 89.0, 89.5, 90.0, 90.5, 91.0, 91.5, 92.0, 92.5, 93.0, 93.5, 94.0, 94.5, 95.0, 95.5, 96.0, 96.5, 97.0, 97.5, 98.0, 98.5, 99.0, 99.5, 100.0]});
+</script>
+<script id="app-script">
+(() => {
+  'use strict';
+  const state = {
+    input: {
+      troop: 'lancer', slot: 'goggles',
+      current: { rarity: 'normal', level: 82, mastery: 8, sub: 3 },
+      target: { rarity: 'mythic', level: 65, mastery: 13, sub: 0 }
+    },
+    bag: { xp:0, stones:0, mithril:0, gear:0 }, result: null, busy: false, storage: true, notice: '', run: 0
+  };
+  const $ = id => document.getElementById(id);
+  const number = value => new Intl.NumberFormat('ja-JP').format(value);
+  const percent = value => `${value.toFixed(2)}%`;
+  const points = value => `${value > 0 ? '+' : ''}${value.toFixed(2)} pt`;
+  const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const storageKey = 'wos-hero-gear-plan-v1';
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const bagKeys = ['xp','stones','mithril','gear'];
+  const bagNames = {xp:'強化経験値',stones:'精錬エナジー源石',mithril:'ミスリル',gear:'素材用レジェンド英雄装備'};
+  function normalizeBag(bag = {}) {
+    if (!bag || typeof bag !== 'object' || Array.isArray(bag)) throw new Error('バッグの保存形式が正しくありません。');
+    return Object.fromEntries(bagKeys.map(key => {
+      const raw = String(bag[key] ?? 0).normalize('NFKC').trim();
+      const value = /^\d+$/.test(raw) ? Number(raw) : NaN;
+      if (!Number.isSafeInteger(value) || value < 0) throw new Error(`${bagNames[key]}の所持数は0以上の整数で入力してください。`);
+      return [key,value];
+    }));
+  }
+  function renderBag() {
+    let bag;
+    try { bag = normalizeBag(state.bag); $('bag-error').textContent = ''; }
+    catch (error) { $('bag-error').textContent = error.message; }
+    $('bag-summary').hidden = !bag || !state.result || Boolean(state.result.errors.length);
+    if ($('bag-summary').hidden) return;
+    const costs = state.result.costs;
+    const shortages = bagKeys.map(key => Math.max(0, (key === 'gear' ? costs.totalGear : costs[key]) - bag[key]));
+    $('bag-status').textContent = shortages.every(value => value === 0) ? '素材はすべて足りています。' : '目標までに不足する素材';
+    $('bag-table').innerHTML = bagKeys.map((key,i) => `<tr><td>${bagNames[key]}</td><td>${number(bag[key])}</td><td class="${shortages[i] ? '' : 'gain'}">${number(shortages[i])}</td></tr>`).join('');
+  }
+  function parsePlan(text) {
+    let plan;
+    try { plan = JSON.parse(text.replace(/^\uFEFF/, '')); }
+    catch { throw new Error('JSONを読み込めませんでした。このツールで保存した入力ファイルを選んでください。'); }
+    if (plan?.schemaVersion !== 1 || !plan.input?.current || !plan.input?.target) throw new Error('対応していない入力ファイルです。形式バージョン1の保存ファイルを選んでください。');
+    const input = GearModel.normalize(plan.input);
+    const errors = GearModel.validate(input);
+    if (errors.length) throw new Error(`ファイル内の入力に問題があります：${errors.join(' ')}`);
+    return input;
+  }
+  try {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try { const input = parsePlan(saved); const bag = normalizeBag(JSON.parse(saved).bag); state.input = input; state.bag = bag; state.notice = '前回の入力を復元しました。'; }
+      catch (error) { state.notice = `保存された入力を復元できなかったため、入力例を表示しています。${error.message}`; }
+    }
+  } catch { state.storage = false; state.notice = 'この環境では自動保存を利用できません。「入力を保存」でファイル保存できます。'; }
+
+  function configure(prefix) {
+    const value = state.input[prefix];
+    const mythic = value.rarity === 'mythic';
+    const min = mythic ? 10 : 0;
+    const max = mythic ? 20 : 10;
+    $(prefix + '-mastery').innerHTML = Array.from({ length: max - min + 1 }, (_, i) => `<option value="${min + i}">${min + i}</option>`).join('');
+    $(prefix + '-mastery').value = String(value.mastery);
+    const subMax = value.mastery >= 4 && value.mastery < max ? 4 : 0;
+    $(prefix + '-sub').innerHTML = Array.from({ length: subMax + 1 }, (_, i) => `<option value="${i}">${i}</option>`).join('');
+    $(prefix + '-sub').value = String(value.sub);
+    $(prefix + '-sub').disabled = subMax === 0;
+    $(prefix + '-help').textContent = mythic ? '神話Lv1〜100。Lv20ごとに必要な精錬が上がります。' : '通常Lv0〜100。精錬はLv20で解放、上限は10-0。';
+  }
+  function syncControls() {
+    for (const key of bagKeys) $('bag-' + key).value = state.bag[key];
+    $('troop').value = state.input.troop;
+    $('slot').value = state.input.slot;
+    for (const prefix of ['current', 'target']) {
+      $(prefix + '-rarity').value = state.input[prefix].rarity;
+      $(prefix + '-level').value = state.input[prefix].level;
+      configure(prefix);
+    }
+  }
+  function readControls() {
+    const input = { troop: $('troop').value, slot: $('slot').value };
+    for (const prefix of ['current', 'target']) {
+      input[prefix] = {
+        rarity: $(prefix + '-rarity').value, level: $(prefix + '-level').value,
+        mastery: $(prefix + '-mastery').value, sub: $(prefix + '-sub').value
+      };
+    }
+    state.input = input;
+  }
+  function row(label, before, after, delta) {
+    return `<tr><td>${escape(label)}</td><td>${percent(before)}</td><td>${percent(after)}</td><td class="${delta > 0 ? 'gain' : ''}">${points(delta)}</td></tr>`;
+  }
+  function materialText(step) {
+    const parts = [];
+    if (step.xp) parts.push(`${number(step.xp)} XP`);
+    if (step.stones) parts.push(`源石 ${number(step.stones)}個`);
+    if (step.mithril) parts.push(`ミスリル ${number(step.mithril)}個`);
+    if (step.gear) parts.push(`素材装備 ${number(step.gear)}個`);
+    return parts.join(' / ');
+  }
+  function render() {
+    renderBag();
+    const r = state.result;
+    const valid = r && !r.errors.length;
+    for (const panel of ['cost-panel', 'stats-panel', 'route-panel']) $(panel).hidden = !valid;
+    $('placeholder').hidden = Boolean(r);
+    $('errors').hidden = !r?.errors.length;
+    $('errors').innerHTML = r?.errors.length ? `<ul>${r.errors.map(error => `<li>${escape(error)}</li>`).join('')}</ul>` : '';
+    $('save').disabled = !valid || state.busy;
+    $('export').disabled = !valid || state.busy || Boolean($('bag-error').textContent);
+    $('calculate').disabled = state.busy;
+    $('calculate').innerHTML = state.busy ? '<span class="spinner" aria-hidden="true"></span>計算中' : '計算する';
+    const target = GearModel.normalize(state.input).target;
+    $('fix-mastery').hidden = !(target.rarity === 'mythic' && Number.isInteger(target.level) && target.level >= 1 && target.level <= 100 && target.mastery < GearModel.minimumMastery(target));
+    for (const prefix of ['current', 'target']) {
+      const s = GearModel.normalize(state.input)[prefix];
+      $(prefix + '-level').setAttribute('aria-invalid', String(GearModel.validateState(s, '').some(e => /装備レベル/.test(e))));
+    }
+    $('status').textContent = state.notice || (valid ? '入力を変更すると、結果を自動更新します。' : '入力を確認してください。');
+    if (!valid) return;
+    const { input, costs, before, after, delta, route } = r;
+    const troop = GearModel.troopNames[input.troop];
+    $('equipment-label').textContent = `${troop} / ${GearModel.slotNames[input.slot]}`;
+    const shortState = (s, label) => `<div><small>${label}</small><strong><span class="badge ${s.rarity}">${s.rarity === 'mythic' ? '神話' : '通常'}</span> Lv.${s.level}</strong><span>精錬 ${GearModel.forgeLabel(s)}</span></div>`;
+    $('transition').innerHTML = `${shortState(input.current, '現在')}<div class="arrow" aria-hidden="true">→</div>${shortState(input.target, '目標')}`;
+    $('cost-xp').textContent = number(costs.xp);
+    $('cost-stones').textContent = number(costs.stones);
+    $('cost-mithril').textContent = number(costs.mithril);
+    $('cost-gear').textContent = number(costs.totalGear);
+    $('gear-breakdown').innerHTML = `<span>神話化 ${costs.ascensionGear}</span><span>配能 ${costs.gateGear}</span><span>精錬 ${costs.forgeGear}</span>`;
+    const mythicStart = input.current.rarity === 'mythic' ? input.current.level : 1;
+    $('xp-note').hidden = !(input.target.rarity === 'mythic' && input.target.level >= 21 && mythicStart < 39);
+    $('stats-table').innerHTML = [
+      row(`${troop}攻撃力（配能）`, before.attack, after.attack, delta.attack),
+      row(`${troop}防御力（配能）`, before.defense, after.defense, delta.defense),
+      row(`${troop}殺傷力（本体＋精錬・参考）`, before.lethality, after.lethality, delta.lethality),
+      row(`${troop}HP（本体＋精錬・参考）`, before.health, after.health, delta.health)
+    ].join('');
+    const bodyName = before.stat === 'lethality' ? '殺傷力' : 'HP';
+    $('detail-table').innerHTML = [
+      row(`本体の${bodyName}（参考）`, before.base, after.base, delta.base),
+      row('精錬による増加（参考）', before.forge, after.forge, delta.forge),
+      row(`本体＋精錬の${bodyName}（参考）`, before.body, after.body, delta.body),
+      row('配能による攻撃力', before.attack, after.attack, delta.attack),
+      row('配能による防御力', before.defense, after.defense, delta.defense)
+    ].join('');
+    $('route-count').textContent = `${route.length}工程`;
+    $('route').innerHTML = route.length ? route.map(step => `<li class="${step.kind}"><div class="route-title">${escape(step.text)}</div><div class="route-meta">${escape(materialText(step))}</div>${step.detail ? `<div class="route-bonus">${escape(step.detail)}</div>` : ''}${step.steps ? `<details><summary>精錬${step.steps.length}段階の内訳</summary><div class="table-wrap"><table class="audit-table"><thead><tr><th>精錬</th><th>源石</th><th>素材装備</th></tr></thead><tbody>${step.steps.map(s => `<tr><td>${GearModel.forgeLabel(s.from)} → ${GearModel.forgeLabel(s.to)}</td><td>${s.stones}</td><td>${s.gear}</td></tr>`).join('')}</tbody></table></div></details>` : ''}</li>`).join('') : '<li><div class="route-title">現在と目標は同じ状態です。</div><div class="route-meta">追加素材は不要です。</div></li>';
+  }
+  function calculate() {
+    state.result = GearModel.calculate(state.input, GearData);
+    let bag;
+    try { bag = normalizeBag(state.bag); } catch { /* 不正な所持数は保存しません。 */ }
+    if (!state.result.errors.length && state.storage && bag) {
+      try { localStorage.setItem(storageKey, JSON.stringify({ schemaVersion: 1, input: state.result.input, bag })); }
+      catch { state.storage = false; state.notice = '自動保存が利用できないため、必要に応じて入力をファイル保存してください。'; }
+    }
+    render();
+  }
+  function download(name, content, type) {
+    const url = URL.createObjectURL(new Blob(['\uFEFF', content], { type }));
+    const link = document.createElement('a');
+    link.href = url; link.download = name;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+  function resultText(r) {
+    const troop = GearModel.troopNames[r.input.troop];
+    const lines = [
+      'ホワイトアウトサバイバル 英雄装備育成結果',
+      `${troop} / ${GearModel.slotNames[r.input.slot]}`,
+      `現在：${GearModel.stateLabel(r.input.current)}`,
+      `目標：${GearModel.stateLabel(r.input.target)}`, '',
+      `強化XP：${number(r.costs.xp)}`,
+      `精錬エナジー源石：${r.costs.stones}`,
+      `ミスリル：${r.costs.mithril}`,
+      `素材用レジェンド英雄装備：${r.costs.totalGear}`,
+      `内訳：神話化${r.costs.ascensionGear} / 配能${r.costs.gateGear} / 精錬${r.costs.forgeGear}`, '',
+      '遠征ステータス（この1部位の効果）'
+    ];
+    for (const [key, label] of [['attack','攻撃力（配能）'], ['defense','防御力（配能）'], ['lethality','殺傷力（本体＋精錬・参考）'], ['health','HP（本体＋精錬・参考）']]) lines.push(`${troop}${label}：${percent(r.before[key])} → ${percent(r.after[key])} / ${points(r.delta[key])}`);
+    lines.push('', '育成ルート', ...r.route.map((step, i) => `${i + 1}. ${step.text} / ${materialText(step)}${step.detail ? ' / ' + step.detail : ''}`));
+    try { const bag = normalizeBag(state.bag); lines.push('', 'バッグ：所持 / 不足', ...bagKeys.map(key => `${bagNames[key]}：${number(bag[key])} / ${number(Math.max(0,(key === 'gear' ? r.costs.totalGear : r.costs[key])-bag[key]))}`)); } catch { lines.push('', 'バッグ：所持数が不正のため不足数は未計算'); }
+    lines.push('', '数値確認：2026-10-05', '神話化直後＝Lv1。Lv途中の投入済みXP・対象装備は未集計。バッグの所持数は不足数にのみ反映。', 'XPは公式個別表を採用。神話Lv1→100＝501,050 XP。公式集計502,000 XPとの差は未解決。', '装備本体％は公式Wiki掲載計算資料に基づく参考値。全レベル実測・丸め方は未確認。', 'https://www.whiteoutsurvival.wiki/hero-gears/hero-gear/', 'https://docs.google.com/spreadsheets/d/112Gi0_kr85KHK-YOEG1zVsz33O3A7HLQH4ccONHZFRo/edit?usp=sharing');
+    return lines.join('\r\n');
+  }
+  $('gear-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const run = ++state.run;
+    readControls(); state.busy = true; render();
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    if (run !== state.run) return;
+    state.busy = false; state.notice = ''; calculate();
+  });
+  $('gear-form').addEventListener('input', event => {
+    if (event.target.tagName !== 'INPUT' || event.target.type === 'file') return;
+    state.run++; state.busy = false; state.notice = ''; readControls(); calculate();
+  });
+  $('gear-form').addEventListener('change', event => {
+    if (event.target.tagName !== 'SELECT') return;
+    state.run++; state.busy = false; state.notice = ''; readControls();
+    for (const prefix of ['current', 'target']) {
+      const s = state.input[prefix];
+      if (event.target.id === prefix + '-rarity') {
+        s.mastery = Math.min(s.rarity === 'mythic' ? 20 : 10, Math.max(s.rarity === 'mythic' ? 10 : 0, Number(s.mastery)));
+        if (s.rarity === 'mythic' && Number(s.level) === 0) s.level = 1;
+        if (s.mastery < 4 || s.mastery === (s.rarity === 'mythic' ? 20 : 10)) s.sub = 0;
+        syncControls(); state.notice = '装備種類に合わせて精錬の入力範囲を更新しました。';
+      } else if (event.target.id === prefix + '-mastery') {
+        if (Number(s.mastery) < 4 || Number(s.mastery) === (s.rarity === 'mythic' ? 20 : 10)) s.sub = 0;
+        configure(prefix);
+      }
+    }
+    calculate();
+  });
+  $('fix-mastery').addEventListener('click', () => {
+    const target = GearModel.normalize(state.input).target;
+    state.input.target.mastery = GearModel.minimumMastery(target);
+    state.input.target.sub = 0;
+    syncControls(); state.notice = '目標の精錬を必要条件に合わせました。'; calculate();
+  });
+  $('preset-example').addEventListener('click', () => {
+    state.input = { troop:'lancer', slot:'goggles', current:{rarity:'normal',level:82,mastery:8,sub:3}, target:{rarity:'mythic',level:65,mastery:13,sub:0} };
+    state.notice = '入力例を表示しました。'; syncControls(); calculate();
+  });
+  $('preset-max').addEventListener('click', () => {
+    state.input.current = {rarity:'mythic',level:1,mastery:10,sub:0};
+    state.input.target = {rarity:'mythic',level:100,mastery:15,sub:0};
+    state.notice = '神話化直後からLv100・精錬15までを表示しました。'; syncControls(); calculate();
+  });
+  $('export').addEventListener('click', () => {
+    if (!state.result || state.result.errors.length) return;
+    download('英雄装備_入力.json', JSON.stringify({ schemaVersion:1, dataAsOf:'2026-10-05', input:state.result.input, bag:normalizeBag(state.bag) }, null, 2), 'application/json;charset=utf-8');
+  });
+  $('save').addEventListener('click', () => {
+    if (!state.result || state.result.errors.length) return;
+    download('英雄装備_育成結果.txt', resultText(state.result), 'text/plain;charset=utf-8');
+  });
+  async function loadFile(file) {
+    if (!file) return;
+    try {
+      if (file.size > 65536) throw new Error('入力ファイルが大きすぎます。64KB以下のJSONを選んでください。');
+      let buffer;
+      try { buffer = await file.arrayBuffer(); }
+      catch { throw new Error('ファイルを読み取れませんでした。ファイルを選び直してください。'); }
+      let text;
+      try { text = new TextDecoder('utf-8', { fatal:true }).decode(buffer); }
+      catch {
+        try { text = new TextDecoder('shift_jis', { fatal:true }).decode(buffer); }
+        catch { throw new Error('文字コードを判定できません。UTF-8またはShift_JISのJSONファイルを選んでください。'); }
+      }
+      const input = parsePlan(text);
+      const bag = normalizeBag(JSON.parse(text.replace(/^\uFEFF/, '')).bag); state.bag = bag; state.input = copy(input); state.notice = '入力ファイルを読み込みました。'; syncControls(); calculate();
+    } catch (error) { state.notice = error instanceof Error ? error.message : '入力ファイルを読み込めませんでした。'; render(); }
+    $('file').value = '';
+  }
+  $('import').addEventListener('click', () => $('file').click());
+  $('file').addEventListener('change', event => loadFile(event.target.files[0]));
+  document.addEventListener('dragover', event => { if (event.dataTransfer.types.includes('Files')) event.preventDefault(); });
+  document.addEventListener('drop', event => {
+    if (!event.dataTransfer.files.length) return;
+    event.preventDefault();
+    if (event.dataTransfer.files.length !== 1) { state.notice = '入力ファイルは1つずつ読み込んでください。'; render(); return; }
+    loadFile(event.dataTransfer.files[0]);
+  });
+  $('gates-table').innerHTML = GearModel.gates.map(g => `<tr><td>${g.level - 1} → ${g.level}</td><td>${g.mastery}</td><td>${g.mithril}</td><td>${g.gear}</td></tr>`).join('');
+  $('forge-table').innerHTML = GearModel.forgeSteps({mastery:0,sub:0},{mastery:20,sub:0}).map(s => `<tr><td>${GearModel.forgeLabel(s.from)} → ${GearModel.forgeLabel(s.to)}</td><td>${s.stones}</td><td>${s.gear}</td><td>+${s.to.mastery * 10 + s.to.sub * 2}%</td></tr>`).join('');
+  $('xp-table').innerHTML = Array.from({length:100},(_,i) => i + 1).map(level => `<tr><td>${level}</td><td>${number(GearModel.normalXP(level))}</td><td>${number(GearModel.mythicXP(level))}</td></tr>`).join('');
+  for (const key of bagKeys) $('bag-' + key).addEventListener('input', event => { state.bag[key] = event.target.value; calculate(); });
+  syncControls(); calculate();
+})();
+
+</script>
+</body>
+</html>
