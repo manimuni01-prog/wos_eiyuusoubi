@@ -115,15 +115,33 @@ footer { text-align:center; margin:24px 0 0; color:var(--muted); font-size:12px;
 @media(max-width:900px) { .workspace { grid-template-columns:1fr; } .input-panel { position:static; } .state-container { display:grid; grid-template-columns:1fr 1fr; gap:24px; } .state-section { margin-top:16px; } }
 @media(max-width:540px) { header { padding:24px 16px 16px; } main { padding:0 16px 24px; } .header-row { display:block; } .version { padding:0; margin-top:8px; } .panel { padding:16px; } .state-container { grid-template-columns:1fr; gap:8px; } .result-stack,.workspace { gap:16px; } .sources-grid { grid-template-columns:1fr; gap:0; } .metric-value { font-size:26px; } .metric:nth-child(even) { padding-left:16px; } .transition { gap:8px; } .transition strong { font-size:17px; } .result-heading { align-items:flex-start; } th,td { font-size:12px; padding:12px 4px; } }
 @media print { body { background:white; color:#182f40; } header,main { max-width:none; } .workspace { display:block; } .input-panel,.actions,.sources,footer { display:none; } .panel { box-shadow:none; margin-bottom:16px; break-inside:avoid; } .route li { break-inside:avoid; } }
+
+.batch-row {display:grid;grid-template-columns:90px 1fr 1fr;gap:8px 16px;border-bottom:1px solid var(--line);padding:16px 0;}
+.batch-slot {align-self:center;}.batch-slot input {width:20px;min-height:20px;vertical-align:middle;margin-right:8px;}
+.batch-fields {display:grid;grid-template-columns:1.2fr 1fr 1fr .7fr;gap:8px;align-items:end;}.batch-fields label {margin:0;font-size:11px;}.batch-fields input,.batch-fields select {padding:8px;min-height:40px;}.batch-row>div:last-child {grid-column:2/-1;}
+.batch-total {display:grid;grid-template-columns:repeat(4,1fr);gap:16px;border-top:1px solid var(--line);margin-top:16px;padding-top:16px;}.batch-total span {display:block;font-size:12px;color:var(--muted);}.batch-total strong {font-size:24px;font-variant-numeric:tabular-nums;}
+button[aria-pressed=true] {background:var(--primary);color:var(--surface);}
+@media(max-width:650px) {.batch-row {grid-template-columns:1fr;gap:8px;}.batch-row>div:last-child {grid-column:auto;}.batch-slot label {margin:0;}.batch-total {grid-template-columns:1fr 1fr;}.batch-fields {grid-template-columns:1.2fr 1fr 1fr .7fr;}}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">WHITEOUT SURVIVAL / HERO GEAR</div>
-  <div class="header-row"><div><h1>英雄装備 育成シミュレーター</h1><p class="subtitle">1部位の育成素材と、遠征で増える効果を確認。</p></div><div class="version">数値確認：2026年10月5日</div></div>
+  <div class="header-row"><div><h1>英雄装備 育成シミュレーター</h1><p class="subtitle">全兵種・12部位の育成素材と遠征効果をまとめて確認。</p></div><div class="version">数値確認：2026年10月5日</div></div>
 </header>
 <main>
-<div class="workspace">
+<div class="actions" style="margin:0 0 16px"><button id="mode-toggle" type="button">1部位モードへ</button></div>
+<section id="batch-panel">
+<div class="panel"><div class="result-heading"><h2>12部位 · 一括育成</h2><button id="batch-save">結果を保存</button></div>
+<p class="helper">全兵種・全部位を合算します。変更する部位の現在と目標を入力してください。チェックを外した部位は集計しません。初期状態は通常Lv0 → Lv0です。表示兵種を切り替えても12部位を集計します。</p>
+<div class="actions"><button data-troop="infantry" aria-pressed="true">盾兵</button><button data-troop="lancer" aria-pressed="false">槍兵</button><button data-troop="marksman" aria-pressed="false">弓兵</button><button id="batch-copy">ゴーグルの目標をこの兵種の4部位へ</button></div>
+<p class="helper">各行の「精錬」はレベル、「段階」は0〜4。神話化直後はLv1・精錬10です。条件不足はエラーでお知らせします。</p>
+<div id="batch-rows"></div><p id="batch-notice" class="helper" role="status"></p>
+<div id="batch-errors" class="notice error" role="alert" hidden></div>
+<div id="batch-output"><div id="batch-total" class="batch-total"></div><p id="batch-gear" class="helper"></p><div id="batch-stats"></div><p class="helper">チェックした4部位の効果を兵種別に加算。部隊の総ステータスではありません。本体％は参考値です。神話XPの個別表と公式総額の950 XP差は未解決です。</p><details><summary>部位別の育成ルートを見る</summary><div id="batch-routes"></div></details></div>
+</div><div id="batch-bag" style="margin-top:16px"></div>
+</section>
+<div class="workspace" id="single-workspace">
 <section class="panel input-panel" aria-labelledby="input-title">
   <h2 id="input-title">育成する装備</h2>
   <form id="gear-form" novalidate>
@@ -435,8 +453,9 @@ const GearData = Object.freeze({"normalStats": [3.33, 3.8, 4.26, 4.73, 5.2, 5.66
     try { bag = normalizeBag(state.bag); $('bag-error').textContent = ''; }
     catch (error) { $('bag-error').textContent = error.message; }
     $('bag-summary').hidden = !bag || !state.result || Boolean(state.result.errors.length);
+    if (state.batchCosts === null) { $('bag-summary').hidden = true; $('bag-error').textContent = '一括入力のエラーを直すと、不足数を表示します。'; return; }
     if ($('bag-summary').hidden) return;
-    const costs = state.result.costs;
+    const costs = state.batchCosts ?? state.result.costs;
     const shortages = bagKeys.map(key => Math.max(0, (key === 'gear' ? costs.totalGear : costs[key]) - bag[key]));
     $('bag-status').textContent = shortages.every(value => value === 0) ? '素材はすべて足りています。' : '目標までに不足する素材';
     $('bag-table').innerHTML = bagKeys.map((key,i) => `<tr><td>${bagNames[key]}</td><td>${number(bag[key])}</td><td class="${shortages[i] ? '' : 'gain'}">${number(shortages[i])}</td></tr>`).join('');
@@ -672,7 +691,102 @@ const GearData = Object.freeze({"normalStats": [3.33, 3.8, 4.26, 4.73, 5.2, 5.66
   $('forge-table').innerHTML = GearModel.forgeSteps({mastery:0,sub:0},{mastery:20,sub:0}).map(s => `<tr><td>${GearModel.forgeLabel(s.from)} → ${GearModel.forgeLabel(s.to)}</td><td>${s.stones}</td><td>${s.gear}</td><td>+${s.to.mastery * 10 + s.to.sub * 2}%</td></tr>`).join('');
   $('xp-table').innerHTML = Array.from({length:100},(_,i) => i + 1).map(level => `<tr><td>${level}</td><td>${number(GearModel.normalXP(level))}</td><td>${number(GearModel.mythicXP(level))}</td></tr>`).join('');
   for (const key of bagKeys) $('bag-' + key).addEventListener('input', event => { state.bag[key] = event.target.value; calculate(); });
+  document.addEventListener('batch-costs',event => { state.batchCosts = event.detail; renderBag(); });
   syncControls(); calculate();
+})();
+
+</script>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const keys = ['xp','stones','mithril','totalGear','ascensionGear','gateGear','forgeGear'];
+  const n = value => new Intl.NumberFormat('ja-JP').format(value);
+  const esc = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const initial = {rarity:'normal',level:0,mastery:0,sub:0};
+  const state = {mode:'batch',troop:'infantry',rows:Object.keys(GearModel.troopNames).flatMap(troop=>Object.keys(GearModel.slotNames).map(slot=>({troop,slot,enabled:true,current:clone(initial),target:clone(initial)}))),results:[],costs:null};
+  try {
+    const raw = localStorage.getItem('wos-hero-gear-batch-v1');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved.schemaVersion === 1 && saved.rows?.length === 12 && state.rows.every((r,i)=>saved.rows[i].troop===r.troop && saved.rows[i].slot===r.slot && typeof saved.rows[i].enabled==='boolean' && saved.rows[i].current && saved.rows[i].target && (!saved.rows[i].enabled || !GearModel.validate(GearModel.normalize(saved.rows[i])).length))) state.rows= saved.rows;
+    } else {
+      const old = JSON.parse(localStorage.getItem('wos-hero-gear-plan-v1') || 'null');
+      if (old?.input && !GearModel.validate(GearModel.normalize(old.input)).length) {
+        const i = state.rows.findIndex(r=>r.troop===old.input.troop && r.slot===old.input.slot);
+        if(i>=0) { Object.assign(state.rows[i],clone(old.input)); state.troop=old.input.troop; $('batch-notice').textContent='前回の1部位入力を一括入力に引き継ぎました。他の部位は通常Lv0 → Lv0です。'; }
+      }
+    }
+  } catch { $('batch-notice').textContent='保存された一括入力を復元できないため、初期状態を表示しています。'; }
+  const bag = $('bag-panel');
+  const bagHome = bag.parentElement;
+  const stats = ['attack','defense','lethality','health'];
+  const statNames = ['攻撃','防御','殺傷（参考）','HP（参考）'];
+  function controls(row,index,prefix) {
+    const s=row[prefix];
+    return `<div class="batch-fields"><select aria-label="${GearModel.slotNames[row.slot]} ${prefix==='current'?'現在':'目標'} 種類" data-row="${index}" data-side="${prefix}" data-key="rarity"><option value="normal" ${s.rarity==='normal'?'selected':''}>通常</option><option value="mythic" ${s.rarity==='mythic'?'selected':''}>神話</option></select>${[['level','Lv'],['mastery','精錬'],['sub','段階']].map(([key,label])=>`<label>${label}<input type="text" inputmode="numeric" aria-label="${GearModel.slotNames[row.slot]} ${prefix==='current'?'現在':'目標'} ${label}" data-row="${index}" data-side="${prefix}" data-key="${key}" value="${esc(s[key])}"></label>`).join('')}</div>`;
+  }
+  function renderRows() {
+    $('batch-rows').innerHTML=state.rows.map((r,i)=>`<div class="batch-row" ${r.troop!==state.troop?'hidden':''}><div class="batch-slot"><label><input type="checkbox" data-row="${i}" data-key="enabled" ${r.enabled?'checked':''}>${GearModel.slotNames[r.slot]}</label></div><div><span class="helper">現在</span>${controls(r,i,'current')}</div><div><span class="helper">目標</span>${controls(r,i,'target')}</div><div id="batch-row-result-${i}" class="helper"></div></div>`).join('');
+    document.querySelectorAll('[data-troop]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.troop===state.troop)));
+  }
+  function calculate() {
+    const totals=Object.fromEntries(keys.map(k=>[k,0]));
+    state.results=state.rows.map(r=>r.enabled?GearModel.calculate(r,GearData):null);
+    const errors=[];
+    state.results.forEach((r,i)=>{
+      const label=GearModel.troopNames[state.rows[i].troop]+' '+GearModel.slotNames[state.rows[i].slot];
+      if(!r){$('batch-row-result-'+i).textContent='集計対象外';return;}
+      if(r.errors.length){ errors.push(...r.errors.map(e=>label+'：'+e)); $('batch-row-result-'+i).textContent=r.errors.join(' ');return; }
+      keys.forEach(k=>totals[k]+=r.costs[k]);
+      $('batch-row-result-'+i).textContent=`XP ${n(r.costs.xp)} / 源石 ${n(r.costs.stones)} / ミスリル ${n(r.costs.mithril)} / 装備 ${n(r.costs.totalGear)}`;
+    });
+    state.costs=errors.length?null:totals;
+    $('batch-errors').hidden=!errors.length;
+    $('batch-errors').innerHTML=errors.map(e=>`<div>${esc(e)}</div>`).join('');
+    $('batch-output').hidden=Boolean(errors.length);
+    $('batch-save').disabled=Boolean(errors.length);
+    if(!errors.length){
+      $('batch-total').innerHTML=[['xp','強化XP'],['stones','源石'],['mithril','ミスリル'],['totalGear','素材装備']].map(([k,label])=>`<div><span>${label}</span><strong>${n(totals[k])}</strong></div>`).join('');
+      $('batch-gear').textContent=`素材装備の内訳：神話化 ${n(totals.ascensionGear)} / 配能 ${n(totals.gateGear)} / 精錬 ${n(totals.forgeGear)}（対象 ${state.rows.filter(r=>r.enabled).length}部位）`;
+      $('batch-stats').innerHTML=Object.entries(GearModel.troopNames).map(([troop,name])=>{
+        const rs=state.results.filter((r,i)=>r && state.rows[i].troop===troop);
+        return `<details><summary>${name} · 遠征効果の合計</summary><table><thead><tr><th>効果</th><th>現在</th><th>目標</th><th>差分pt</th></tr></thead><tbody>${stats.map((k,j)=>{ const before=rs.reduce((s,r)=>s+r.before[k],0),after=rs.reduce((s,r)=>s+r.after[k],0);return `<tr><td>${statNames[j]}</td><td>${before.toFixed(2)}%</td><td>${after.toFixed(2)}%</td><td>${(after-before).toFixed(2)}</td></tr>`; }).join('')}</tbody></table></details>`;
+      }).join('');
+      $('batch-routes').innerHTML=state.results.map((r,i)=>r?`<details><summary>${GearModel.troopNames[state.rows[i].troop]} · ${GearModel.slotNames[state.rows[i].slot]}：${GearModel.stateLabel(r.input.current)} → ${GearModel.stateLabel(r.input.target)}</summary>${r.route.map(step=>`<p class="helper">${esc(step.text)}：XP ${n(step.xp||0)} / 源石 ${n(step.stones||0)} / ミスリル ${n(step.mithril||0)} / 装備 ${n(step.gear||0)}${step.detail?' / '+esc(step.detail):''}</p>`).join('')||'<p class="helper">追加素材は不要です。</p>'}</details>`:'').join('');
+      try { localStorage.setItem('wos-hero-gear-batch-v1',JSON.stringify({schemaVersion:1,rows:state.rows})); } catch { $('batch-notice').textContent='この環境では一括入力の自動保存が利用できません。'; }
+    }
+    document.dispatchEvent(new CustomEvent('batch-costs',{detail:state.mode==='batch'?state.costs:undefined}));
+  }
+  $('batch-rows').addEventListener('input',event=>{
+    const el=event.target;if(!el.dataset.key)return;
+    const r=state.rows[Number(el.dataset.row)];
+    if(el.dataset.key==='enabled')r.enabled=el.checked;
+    else r[el.dataset.side][el.dataset.key]=el.value;
+    calculate();
+  });
+  document.querySelectorAll('[data-troop]').forEach(b=>b.addEventListener('click',()=>{state.troop=b.dataset.troop;renderRows();calculate();}));
+  $('batch-copy').addEventListener('click',()=>{
+    const first=state.rows.find(r=>r.troop===state.troop);
+    state.rows.filter(r=>r.troop===state.troop).forEach(r=>{r.target=clone(first.target);});
+    renderRows();calculate();$('batch-notice').textContent='この兵種の4部位に、ゴーグルの目標状態をコピーしました。';
+  });
+  $('mode-toggle').addEventListener('click',()=>{
+    state.mode=state.mode==='batch'?'single':'batch';
+    $('batch-panel').hidden=state.mode==='single';$('single-workspace').hidden=state.mode==='batch';
+    $('mode-toggle').textContent=state.mode==='batch'?'1部位モードへ':'12部位モードへ';
+    if(state.mode==='batch')$('batch-bag').appendChild(bag);else bagHome.insertBefore(bag,$('stats-panel'));
+    calculate();
+  });
+  $('batch-save').addEventListener('click',()=>{
+    if(!state.costs)return;
+    const names={xp:'強化XP',stones:'源石',mithril:'ミスリル',totalGear:'素材装備 合計',ascensionGear:'素材装備 神話化',gateGear:'素材装備 配能',forgeGear:'素材装備 精錬'};
+    const lines=['英雄装備 12部位一括計算',...keys.map(k=>`${names[k]}: ${n(state.costs[k])}`),...state.results.flatMap((r,i)=>r?[`${GearModel.troopNames[state.rows[i].troop]} ${GearModel.slotNames[state.rows[i].slot]}`,`${GearModel.stateLabel(r.input.current)} → ${GearModel.stateLabel(r.input.target)}`,...r.route.map(s=>s.text)]:[])];
+    lines.push('バッグ（所持 / 不足）',$('bag-table').innerText,'装備本体％は参考値。XP集計の950差は未解決。');
+    const url=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='英雄装備_12部位結果.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  });
+  $('single-workspace').hidden=true;$('batch-bag').appendChild(bag);renderRows();calculate();
 })();
 
 </script>
