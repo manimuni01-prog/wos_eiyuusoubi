@@ -1,216 +1,28 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<meta name="description" content="ホワイトアウトサバイバルの通常・神話英雄装備の育成素材と遠征効果を比較する、オフライン対応シミュレーター。">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
-<title>英雄装備 育成シミュレーター</title>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; base-uri 'none'; form-action 'none'"><title>英雄装備 · 12部位シミュレーター</title>
 <style>
-:root { --bg:#eef2f5; --surface:#fff; --ink:#182f40; --muted:#526673; --line:#cbd6dd; --primary:#164e70; --primary-hover:#103c58; --soft:#eaf1f6; --gold:#785008; --gold-bg:#fff3d8; --mythic:#a7392d; --mythic-bg:#fcebe7; --green:#236644; --green-bg:#e9f4ed; --warning:#895211; --warning-bg:#fff3dc; --error:#a62b29; --error-bg:#fff0ee; --radius:16px; --small:8px; --gap:24px; --shadow:0 4px 20px #18334608; }
-@media(prefers-color-scheme:dark) { :root { --bg:#111c25; --surface:#1b2a36; --ink:#e8f0f5; --muted:#b3c3cd; --line:#405462; --primary:#9bd0ee; --primary-hover:#b7e1f8; --soft:#233744; --gold:#f1c675; --gold-bg:#423621; --mythic:#ffb3a7; --mythic-bg:#482e2b; --green:#9ddeba; --green-bg:#233d31; --warning:#f6ca89; --warning-bg:#413324; --error:#ffb5ae; --error-bg:#482b2c; --shadow:none; } }
-* { box-sizing:border-box; }
-body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.7 "Yu Gothic UI","Hiragino Sans",sans-serif; }
-button,input,select,textarea { font:inherit; }
-button,select { cursor:pointer; }
-button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
-:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
-a { color:var(--primary); text-underline-offset:3px; overflow-wrap:anywhere; }
-a:hover { text-decoration-thickness:2px; }
-button { border:1px solid var(--line); padding:8px 16px; border-radius:var(--small); min-height:44px; background:var(--surface); color:var(--ink); transition:background .15s,transform .15s; }
-button:hover:not(:disabled) { background:var(--soft); }
-button:active:not(:disabled) { transform:translateY(1px); }
-button:disabled { opacity:.5; cursor:default; }
-button.primary { color:var(--surface); background:var(--primary); border-color:var(--primary); font-weight:700; }
-button.primary:hover:not(:disabled) { background:var(--primary-hover); }
-input,select { width:100%; min-height:48px; padding:8px 12px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:var(--small); }
-input:hover,select:hover { border-color:var(--muted); }
-input[aria-invalid=true] { border-color:var(--error); }
-input:disabled,select:disabled { background:var(--bg); color:var(--muted); cursor:default; }
-input { font-variant-numeric:tabular-nums; }
-header { border-top:4px solid var(--primary); padding:32px 24px 24px; max-width:1200px; margin:auto; }
-.brand { font-size:11px; letter-spacing:.15em; color:var(--muted); font-weight:700; }
-.header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
-h1 { font-size:clamp(24px,3vw,32px); line-height:1.4; margin:8px 0; letter-spacing:.02em; }
-h2 { font-size:18px; margin:0 0 16px; }
-h3 { margin:0; font-size:16px; }
-p { margin:8px 0 16px; }
-.subtitle { color:var(--muted); margin:0; }
-.version { white-space:nowrap; font-size:12px; color:var(--muted); padding-top:16px; }
-main { max-width:1200px; margin:auto; padding:0 24px 32px; }
-.workspace { display:grid; grid-template-columns:360px minmax(0,1fr); gap:24px; align-items:start; }
-.panel { border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:24px; box-shadow:var(--shadow); min-width:0; }
-.input-panel { position:sticky; top:24px; }
-.two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-label { display:block; font-size:13px; font-weight:600; margin-bottom:8px; }
-.field { min-width:0; }
-.state-section { border:0; border-top:1px solid var(--line); padding:16px 0 0; margin:24px 0 0; min-width:0; }
-legend { padding:0 8px 0 0; font-weight:700; }
-.state-fields { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; }
-.state-fields .wide { grid-column:1/-1; }
-.ref-fields { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.helper { color:var(--muted); font-size:12px; margin:8px 0 0; }
-.actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:24px; }
-.actions .primary { flex:1; }
-.presets { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
-.presets button { font-size:12px; padding:8px 12px; }
-.result-stack { display:grid; gap:24px; }
-.result-heading { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:16px; }
-.result-heading h2 { margin:0; }
-.badge { display:inline-block; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:700; }
-.badge.normal { color:var(--gold); background:var(--gold-bg); }
-.badge.mythic { color:var(--mythic); background:var(--mythic-bg); }
-.badge.info { color:var(--primary); background:var(--soft); }
-.transition { display:grid; grid-template-columns:1fr auto 1fr; gap:16px; padding-bottom:16px; border-bottom:1px solid var(--line); align-items:center; }
-.transition small { display:block; color:var(--muted); }
-.transition strong { display:block; font-size:18px; font-variant-numeric:tabular-nums; }
-.transition span { font-size:13px; }
-.arrow { font-size:24px; color:var(--muted); }
-.metrics { display:grid; grid-template-columns:1fr 1fr; margin-top:8px; }
-.metric { padding:16px 0; min-width:0; }
-.metric:nth-child(even) { padding-left:24px; border-left:1px solid var(--line); }
-.metric:nth-child(-n+2) { border-bottom:1px solid var(--line); }
-.metric-label { font-size:13px; color:var(--muted); }
-.metric-value { font-size:30px; font-weight:750; line-height:1.4; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
-.metric-value small { margin-left:4px; font-size:13px; font-weight:400; letter-spacing:0; }
-.gear-breakdown { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; margin-top:8px; color:var(--muted); }
-.notice { border-left:3px solid var(--warning); background:var(--warning-bg); color:var(--warning); padding:12px 16px; font-size:13px; border-radius:0 8px 8px 0; margin:16px 0 0; }
-.notice.error { border-color:var(--error); color:var(--error); background:var(--error-bg); margin:0; }
-.notice.error ul { margin:0; padding-left:20px; }
-.status { min-height:22px; color:var(--muted); font-size:12px; margin:8px 0 0; }
-.table-wrap { overflow:auto; }
-table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; font-size:14px; }
-th,td { padding:12px 8px; border-bottom:1px solid var(--line); text-align:right; }
-th:first-child,td:first-child { text-align:left; padding-left:0; }
-th:last-child,td:last-child { padding-right:0; }
-thead th { color:var(--muted); font-size:12px; font-weight:600; }
-tbody tr:last-child td { border-bottom:0; }
-.gain { color:var(--green); font-weight:700; }
-.stat-detail { margin-top:16px; padding-top:16px; border-top:1px solid var(--line); }
-summary { cursor:pointer; min-height:44px; display:list-item; color:var(--primary); font-size:13px; padding:8px 0; }
-summary:hover { text-decoration:underline; }
-.route { list-style:none; padding:0; margin:0; }
-.route li { position:relative; padding:0 0 24px 28px; border-left:1px solid var(--line); margin-left:6px; }
-.route li:last-child { padding-bottom:0; border-left-color:transparent; }
-.route li::before { content:''; position:absolute; width:11px; height:11px; border-radius:50%; background:var(--primary); left:-6px; top:7px; border:2px solid var(--surface); }
-.route li.gate::before,.route li.ascend::before { background:var(--mythic); }
-.route li.forge::before { background:var(--gold); }
-.route-title { font-weight:650; font-size:14px; }
-.route-meta { font-size:12px; color:var(--muted); margin:4px 0 0; }
-.route-bonus { font-size:12px; color:var(--green); margin-top:4px; }
-.empty { padding:32px 8px; color:var(--muted); text-align:center; }
-.sources { margin-top:24px; }
-.sources p,.sources li { font-size:13px; }
-.sources ul { padding-left:20px; }
-.sources-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-.sources h3 { margin:16px 0 8px; }
-.audit-table { min-width:420px; font-size:12px; }
-.audit-table th,.audit-table td { padding:8px; }
-footer { text-align:center; margin:24px 0 0; color:var(--muted); font-size:12px; }
-[hidden] { display:none!important; }
-.spinner { display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .6s linear infinite; margin-right:8px; vertical-align:-2px; }
-@keyframes spin { to { transform:rotate(360deg); } }
-@media(prefers-reduced-motion:reduce) { * { transition:none!important; animation:none!important; } }
-@media(max-width:900px) { .workspace { grid-template-columns:1fr; } .input-panel { position:static; } .state-container { display:grid; grid-template-columns:1fr 1fr; gap:24px; } .state-section { margin-top:16px; } }
-@media(max-width:540px) { header { padding:24px 16px 16px; } main { padding:0 16px 24px; } .header-row { display:block; } .version { padding:0; margin-top:8px; } .panel { padding:16px; } .state-container { grid-template-columns:1fr; gap:8px; } .result-stack,.workspace { gap:16px; } .sources-grid { grid-template-columns:1fr; gap:0; } .metric-value { font-size:26px; } .metric:nth-child(even) { padding-left:16px; } .transition { gap:8px; } .transition strong { font-size:17px; } .result-heading { align-items:flex-start; } th,td { font-size:12px; padding:12px 4px; } }
-@media print { body { background:white; color:#182f40; } header,main { max-width:none; } .workspace { display:block; } .input-panel,.actions,.sources,footer { display:none; } .panel { box-shadow:none; margin-bottom:16px; break-inside:avoid; } .route li { break-inside:avoid; } }
+:root{--bg:#edf2f5;--paper:#fff;--ink:#182f40;--muted:#526673;--line:#cbd6dd;--blue:#164e70;--soft:#eaf1f6;--orange:#865011;--gate:#fff0d5;--green:#216341;--error:#a62b29;--current:#dfeefa;--target:#e5f3df;--radius:12px;--dock-height:124px}
+@media(prefers-color-scheme:dark){:root{--bg:#111c25;--paper:#1b2a36;--ink:#e8f0f5;--muted:#b3c3cd;--line:#405462;--blue:#9bd0ee;--soft:#233744;--orange:#f6ca89;--gate:#413324;--green:#9ddeba;--error:#ffb5ae;--current:#203e55;--target:#2b4324}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "Yu Gothic UI","Hiragino Sans",sans-serif;font-variant-numeric:tabular-nums}header,main{max-width:960px;margin:auto;padding:16px}header{border-top:4px solid var(--blue);padding-bottom:8px}header small{font-size:11px;letter-spacing:.1em;color:var(--muted)}h1{font-size:24px;margin:0}h2{font-size:18px;margin:0 0 8px}p{margin:8px 0}button,input,select{font:inherit;color:inherit}button,select{cursor:pointer}button{min-height:44px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--paper)}button:hover:not(:disabled){background:var(--soft)}button:active{transform:translateY(1px)}button:disabled,input:disabled{opacity:.55;cursor:default}button[aria-selected=true],button[aria-pressed=true]{background:var(--blue);color:var(--paper);border-color:var(--blue)}:focus-visible{outline:3px solid var(--blue);outline-offset:3px}input[type=text],select{min-height:44px;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px;width:100%}input[type=range]{display:block;width:100%;height:40px;accent-color:var(--blue);margin:0;cursor:pointer}input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue);vertical-align:middle}a{color:var(--blue);overflow-wrap:anywhere}main{padding-top:0;padding-bottom:calc(var(--dock-height) + 40px + env(safe-area-inset-bottom))}.panel{background:var(--paper);padding:16px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px}.selector{display:flex;gap:8px;align-items:center}.selector label{white-space:nowrap}.selector select{width:auto;flex:1}.slots,.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}.slots button{padding:8px 0;font-size:13px}.tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;margin:0 0 16px;gap:4px}.tabs button{font-size:14px;padding:8px}.helper{font-size:12px;color:var(--muted)}.field-top{display:flex;align-items:center;justify-content:space-between;gap:16px}.field-top label{font-weight:600;font-size:14px}.field-top>div{display:flex;align-items:center;gap:8px}.field-top input{width:80px;text-align:right;font-size:18px}.slider-field{padding:16px 0 8px;border-top:1px solid var(--line);margin-top:16px}.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px}.row select{max-width:180px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.actions button{font-size:12px}.error{color:var(--error);border-left:3px solid var(--error);padding-left:12px;font-size:13px}.notice{font-size:12px;color:var(--blue)}.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.totals small{display:block;color:var(--muted);font-size:11px}.totals strong{font-size:22px}table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}th,td{padding:8px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}thead th{font-weight:600;color:var(--muted)}summary{cursor:pointer;min-height:44px;padding:8px 0;color:var(--blue);font-size:13px}summary:hover{text-decoration:underline}.table-wrap{overflow:auto}.matrix-wrap{max-height:440px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:16px}.matrix-table{width:max-content;font-size:11px}.matrix-table td,.matrix-table th{min-width:64px;height:40px;text-align:center;border-right:1px solid var(--line);position:relative}.matrix-table thead{position:sticky;top:0;z-index:3}.matrix-table th{background:var(--paper)}.matrix-table th:first-child{position:sticky;left:0;z-index:2;min-width:110px}.matrix-table thead th:first-child{z-index:4}.gate-cell{background:var(--gate)!important;color:var(--orange)}.current-cell{box-shadow:inset 0 0 0 2px var(--blue);background:var(--current)}.target-cell{outline:2px solid var(--green);outline-offset:-4px;background:var(--target)}.matrix-table b{font-size:9px;margin-left:2px}.unavailable{color:var(--muted);background:var(--bg)}.legend{display:flex;gap:16px;font-size:12px}.legend span{padding:4px 8px}.legend .current{background:var(--current);border:2px solid var(--blue)}.legend .target{background:var(--target);border:2px solid var(--green)}.bag-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}.bag-fields label{font-size:12px}.bag-fields input{margin-top:8px}.live{position:fixed;bottom:0;left:0;right:0;z-index:8;border-top:2px solid var(--blue);background:var(--paper);padding:8px 16px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px #0001}.live-inner{max-width:928px;margin:auto}.live small{display:block;font-size:11px;color:var(--muted)}.live strong{font-size:16px;display:block}.live p{font-size:11px;margin:0}.live .live-costs{color:var(--blue);border-top:1px solid var(--line);margin-top:4px;padding-top:4px}.sources ul{padding-left:20px}.sources p,.sources li{font-size:12px}.sources-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.audit-table{min-width:420px}.sources h3{font-size:15px}.sources{margin-top:16px}[hidden]{display:none!important}@media(max-width:540px){header,main{padding-left:16px;padding-right:16px}.sources-grid{grid-template-columns:1fr}.totals{grid-template-columns:1fr 1fr}.totals strong{font-size:24px}}@media print{.live,.tabs,.selector,.slots,.actions{display:none}main{padding-bottom:0}.matrix-wrap{max-height:none}}
 
-.batch-row {display:grid;grid-template-columns:90px 1fr 1fr;gap:8px 16px;border-bottom:1px solid var(--line);padding:16px 0;}
-.batch-slot {align-self:center;}.batch-slot input {width:20px;min-height:20px;vertical-align:middle;margin-right:8px;}
-.batch-fields {display:grid;grid-template-columns:1.2fr 1fr 1fr .7fr;gap:8px;align-items:end;}.batch-fields label {margin:0;font-size:11px;}.batch-fields input,.batch-fields select {padding:8px;min-height:40px;}.batch-row>div:last-child {grid-column:2/-1;}
-.batch-total {display:grid;grid-template-columns:repeat(4,1fr);gap:16px;border-top:1px solid var(--line);margin-top:16px;padding-top:16px;}.batch-total span {display:block;font-size:12px;color:var(--muted);}.batch-total strong {font-size:24px;font-variant-numeric:tabular-nums;}
-button[aria-pressed=true] {background:var(--primary);color:var(--surface);}
-@media(max-width:650px) {.batch-row {grid-template-columns:1fr;gap:8px;}.batch-row>div:last-child {grid-column:auto;}.batch-slot label {margin:0;}.batch-total {grid-template-columns:1fr 1fr;}.batch-fields {grid-template-columns:1.2fr 1fr 1fr .7fr;}}
-</style>
-</head>
-<body>
-<header>
-  <div class="brand">WHITEOUT SURVIVAL / HERO GEAR</div>
-  <div class="header-row"><div><h1>英雄装備 育成シミュレーター</h1><p class="subtitle">全兵種・12部位の育成素材と遠征効果をまとめて確認。</p></div><div class="version">数値確認：2026年10月5日</div></div>
-</header>
-<main>
-<div class="actions" style="margin:0 0 16px"><button id="mode-toggle" type="button">1部位モードへ</button></div>
-<section id="batch-panel">
-<div class="panel"><div class="result-heading"><h2>12部位 · 一括育成</h2><button id="batch-save">結果を保存</button></div>
-<p class="helper">全兵種・全部位を合算します。変更する部位の現在と目標を入力してください。チェックを外した部位は集計しません。初期状態は通常Lv0 → Lv0です。表示兵種を切り替えても12部位を集計します。</p>
-<div class="actions"><button data-troop="infantry" aria-pressed="true">盾兵</button><button data-troop="lancer" aria-pressed="false">槍兵</button><button data-troop="marksman" aria-pressed="false">弓兵</button><button id="batch-copy">ゴーグルの目標をこの兵種の4部位へ</button></div>
-<p class="helper">各行の「精錬」はレベル、「段階」は0〜4。神話化直後はLv1・精錬10です。条件不足はエラーでお知らせします。</p>
-<div id="batch-rows"></div><p id="batch-notice" class="helper" role="status"></p>
-<div id="batch-errors" class="notice error" role="alert" hidden></div>
-<div id="batch-output"><div id="batch-total" class="batch-total"></div><p id="batch-gear" class="helper"></p><div id="batch-stats"></div><p class="helper">チェックした4部位の効果を兵種別に加算。部隊の総ステータスではありません。本体％は参考値です。神話XPの個別表と公式総額の950 XP差は未解決です。</p><details><summary>部位別の育成ルートを見る</summary><div id="batch-routes"></div></details></div>
-</div><div id="batch-bag" style="margin-top:16px"></div>
-</section>
-<div class="workspace" id="single-workspace">
-<section class="panel input-panel" aria-labelledby="input-title">
-  <h2 id="input-title">育成する装備</h2>
-  <form id="gear-form" novalidate>
-  <div class="two">
-    <div class="field"><label for="troop">兵種</label><select id="troop"><option value="infantry">盾兵</option><option value="lancer">槍兵</option><option value="marksman">弓兵</option></select></div>
-    <div class="field"><label for="slot">部位</label><select id="slot"><option value="goggles">ゴーグル（頭）</option><option value="gloves">グローブ（腕）</option><option value="belt">ベルト（腰）</option><option value="boots">ブーツ（足）</option></select></div>
-  </div>
-  <div class="state-container">
-  <fieldset class="state-section"><legend>現在</legend>
-    <div class="state-fields">
-      <div class="wide"><label for="current-rarity">装備種類</label><select id="current-rarity"><option value="normal">通常（レジェンド・金）</option><option value="mythic">神話（赤）</option></select></div>
-      <div><label for="current-level">装備レベル</label><input id="current-level" type="text" inputmode="numeric" maxlength="4" aria-describedby="current-help" autocomplete="off"></div>
-      <div><label for="current-mastery">精錬レベル / サブ段階</label><div class="ref-fields"><select id="current-mastery" aria-label="現在の精錬レベル"></select><select id="current-sub" aria-label="現在の精錬サブ段階"></select></div></div>
-    </div><p class="helper" id="current-help"></p>
-  </fieldset>
-  <fieldset class="state-section"><legend>目標</legend>
-    <div class="state-fields">
-      <div class="wide"><label for="target-rarity">装備種類</label><select id="target-rarity"><option value="normal">通常（レジェンド・金）</option><option value="mythic">神話（赤）</option></select></div>
-      <div><label for="target-level">装備レベル</label><input id="target-level" type="text" inputmode="numeric" maxlength="4" aria-describedby="target-help" autocomplete="off"></div>
-      <div><label for="target-mastery">精錬レベル / サブ段階</label><div class="ref-fields"><select id="target-mastery" aria-label="目標の精錬レベル"></select><select id="target-sub" aria-label="目標の精錬サブ段階"></select></div></div>
-    </div><p class="helper" id="target-help"></p>
-    <button type="button" id="fix-mastery" hidden style="margin-top:8px;font-size:12px">目標を必要な精錬に合わせる</button>
-  </fieldset>
-  </div>
-  <div class="actions"><button class="primary" id="calculate" type="submit">計算する</button><button type="button" id="save" disabled>結果を保存</button></div>
-  <p class="status" id="status" role="status" aria-live="polite"></p>
-  <div class="presets"><button type="button" id="preset-example">入力例：通常82 → 神話65</button><button type="button" id="preset-max">神話1 → 100</button></div>
-  </form>
-  <p class="helper">通常は金品質のレジェンド装備を対象とします。神話化でLv1になり、精錬は引き継ぎます。配能突破は目標レベルから自動判定します。</p>
-  <details style="margin-top:16px"><summary>入力をファイルで保存・読み込み</summary><div class="actions" style="margin-top:8px"><button type="button" id="export">入力を保存</button><button type="button" id="import">入力を読み込む</button><input id="file" type="file" accept=".json,application/json" hidden></div><p class="helper">保存したJSONファイルを、この画面にドラッグして読み込むこともできます。</p></details>
-</section>
-<div class="result-stack">
-  <div id="errors" class="notice error" role="alert" hidden></div>
-  <div id="placeholder" class="panel empty" hidden>現在と目標を入力すると、育成結果を表示します。</div>
-  <section class="panel" id="cost-panel" aria-labelledby="cost-title">
-    <div class="result-heading"><h2 id="cost-title">必要な素材</h2><span class="badge info" id="equipment-label"></span></div>
-    <div class="transition" id="transition"></div>
-    <div class="metrics">
-      <div class="metric"><div class="metric-label">強化経験値</div><div class="metric-value"><span id="cost-xp">—</span><small>XP</small></div></div>
-      <div class="metric"><div class="metric-label">精錬エナジー源石</div><div class="metric-value"><span id="cost-stones">—</span><small>個</small></div></div>
-      <div class="metric"><div class="metric-label">ミスリル</div><div class="metric-value"><span id="cost-mithril">—</span><small>個</small></div></div>
-      <div class="metric"><div class="metric-label">素材用レジェンド英雄装備</div><div class="metric-value"><span id="cost-gear">—</span><small>個</small></div><div class="gear-breakdown" id="gear-breakdown"></div></div>
-    </div>
-    <p class="helper">現在レベル・精錬サブ段階の完了時点から計算します。レベル途中の投入済みXP、育成対象の装備1個は必要素材数に含みません。所持素材はバッグ欄で不足数に反映します。</p>
-    <p class="notice" id="xp-note" hidden>神話Lv21〜39のXPは公式個別表を採用（20→21：3,450、21→22：3,500）。神話Lv1→100の合計は501,050 XPです。公式ページの集計502,000 XPとは950 XP差があり、集計側は未解決です。</p>
-  </section>
-  <section class="panel" id="bag-panel" aria-labelledby="bag-title">
-    <h2 id="bag-title">バッグ · アイテム所持数</h2>
-    <p class="helper">使える素材の所持数を入力すると、不足数を自動計算します。強化経験値は素材の合計XPを入力してください。素材装備は育成対象を除いた個数です。</p>
-    <div class="two" style="margin-top:16px">
-      <div><label for="bag-xp">強化経験値（XP）</label><input id="bag-xp" type="text" inputmode="numeric" autocomplete="off"></div>
-      <div><label for="bag-stones">精錬エナジー源石（個）</label><input id="bag-stones" type="text" inputmode="numeric" autocomplete="off"></div>
-      <div><label for="bag-mithril">ミスリル（個）</label><input id="bag-mithril" type="text" inputmode="numeric" autocomplete="off"></div>
-      <div><label for="bag-gear">素材用レジェンド装備（個）</label><input id="bag-gear" type="text" inputmode="numeric" autocomplete="off"></div>
-    </div>
-    <p id="bag-error" role="alert" style="color:var(--error)"></p>
-    <div id="bag-summary"><h3 id="bag-status"></h3><div class="table-wrap"><table aria-label="所持素材と不足数"><thead><tr><th>素材</th><th>所持</th><th>不足</th></tr></thead><tbody id="bag-table"></tbody></table></div></div>
-    <p class="helper">所持数は自動保存されます。必要素材の総数や育成ルートは変わりません。計算してもバッグの素材は消費しません。</p>
-  </section>
-  <section class="panel" id="stats-panel" aria-labelledby="stats-title">
-    <div class="result-heading"><h2 id="stats-title">遠征ステータスの比較</h2><span class="badge info">この1部位の効果</span></div>
-    <div class="table-wrap"><table aria-label="遠征ステータスの現在、目標、差分"><thead><tr><th>ステータス</th><th>現在</th><th>目標</th><th>差分</th></tr></thead><tbody id="stats-table"></tbody></table></div>
-    <p class="helper">差分はパーセントポイント（pt）。部隊の総ステータスや、実際のダメージ増加率ではありません。</p>
-    <details class="stat-detail"><summary>装備本体・精錬・配能の内訳</summary><div class="table-wrap"><table aria-label="効果の内訳"><thead><tr><th>要素</th><th>現在</th><th>目標</th><th>差分</th></tr></thead><tbody id="detail-table"></tbody></table></div><p class="helper">本体の殺傷力／HP ×（1＋精錬上昇率）で装備効果を算出。配能の攻撃／防御は別の追加効果として表示し、精錬倍率を掛けません。</p></details>
-    <p class="notice">装備本体の殺傷力／HPは、公式Wiki掲載の公開計算資料に基づく参考値です。全レベルの最新ゲーム内実測と丸め方は未確認のため、表示に小さな差が出る可能性があります。配能の攻撃／防御は公式Wikiのゲーム画面で確認済みです。</p>
-  </section>
-  <section class="panel" id="route-panel" aria-labelledby="route-title"><div class="result-heading"><h2 id="route-title">育成ルート</h2><span class="helper" id="route-count"></span></div><ol class="route" id="route"></ol></section>
-</div>
-</div>
+/* 戦略画面：読み取りやすい濃紺、金のアクセント、密度の高い操作領域 */
+:root{--bg:#0c1420;--paper:#142130;--ink:#edf2f7;--muted:#aab9c9;--line:#334354;--blue:#e5c27f;--soft:#203246;--orange:#f3c882;--gate:#3b3020;--green:#a6d9b4;--error:#ffb5ad;--current:#203c52;--target:#253c2c;--radius:8px;--dock-height:130px}
+@media(prefers-color-scheme:dark){:root{--bg:#0c1420;--paper:#142130;--ink:#edf2f7;--muted:#aab9c9;--line:#334354;--blue:#e5c27f;--soft:#203246;--orange:#f3c882;--gate:#3b3020;--green:#a6d9b4;--error:#ffb5ad;--current:#203c52;--target:#253c2c}}
+body{background:var(--bg);line-height:1.5}header{padding-top:12px;border-top:2px solid var(--blue)}header small{font-size:10px;letter-spacing:.16em}h1{font-size:21px;letter-spacing:.02em}header p{margin:4px 0}main{max-width:800px}header{max-width:800px}.panel{padding:12px 16px;margin-bottom:12px;border-top-color:#556270;box-shadow:0 8px 24px #0002}h2{font-size:16px;letter-spacing:.03em;margin-bottom:4px}p{margin:6px 0}.helper{font-size:11px;line-height:1.5}.selector{gap:12px}.selector label{font-size:12px;color:var(--muted)}.selector select{font-weight:700}.slots{gap:4px;margin-top:6px}.slots button{border-radius:4px;min-height:40px;font-size:12px}.tabs{gap:0;padding:6px 0;margin-bottom:8px}.tabs button{border-radius:0;border:0;border-bottom:2px solid var(--line);background:transparent;min-height:42px;font-weight:700;color:var(--muted)}.tabs button[aria-selected=true]{color:var(--blue);background:var(--paper);border-color:var(--blue)}.notice:empty,.error:empty{display:none}.row{margin-top:8px}.row label{font-size:12px;color:var(--muted)}.slider-field{padding:10px 0 0;margin-top:10px}.field-top{gap:8px}.field-top label{font-size:13px}.field-top input{min-height:40px;font-size:21px;font-weight:700;width:76px;background:#0e1925;border-color:#516071}.field-top span{font-size:11px;color:var(--muted)}input[type=range]{height:32px}.range-labels{font-size:10px}.actions{gap:6px;margin-top:10px}.actions button{font-size:11px;padding:8px;min-height:40px}.totals{grid-template-columns:repeat(4,minmax(0,1fr));padding:8px 0;border-bottom:1px solid var(--line)}.totals strong{font-size:clamp(17px,3.8vw,25px);letter-spacing:-.03em}.totals small{font-size:10px}summary{min-height:40px;padding:8px 0}.bag-fields{gap:12px;margin:12px 0}.bag-fields input{margin-top:4px}.bag-fields input[type=range]{margin:0}.live{border-top:1px solid var(--blue);background:#101d2b;padding-top:8px;box-shadow:0 -8px 24px #0004}.live small{font-size:10px;letter-spacing:.02em}.live strong{color:#f0d6a6;font-size:16px;font-weight:700}.live p{font-size:10px;line-height:1.45}.live .live-costs{color:var(--ink);border-top-color:#3e4c5b}.live-inner{max-width:768px}.matrix-table td,.matrix-table th{height:34px;min-width:60px}.matrix-table th:first-child{min-width:96px}.legend{gap:8px;font-size:11px}.legend span{padding:2px 6px}.sources{margin-top:12px}.sources p,.sources li{font-size:11px}
+@media(max-width:540px){header,main{padding-left:12px;padding-right:12px}.panel{padding:12px}.totals{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.totals strong{font-size:17px}.field-top input{width:76px}.live{padding-left:12px;padding-right:12px}}
+
+
+.utility{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--muted);font-size:11px}.utility button{font-size:11px;min-height:36px;padding:6px 10px}.current-reference{border:1px solid #607a88;border-left:3px solid #98cfe7;background:var(--current);padding:8px 10px;font-size:12px;color:var(--ink);border-radius:4px;margin:8px 0}.marker-track{position:relative;height:28px;margin:4px 10px 0;pointer-events:none}.current-marker{position:absolute;top:0;transform:translateX(-50%);text-align:center;color:#a8d9ef;white-space:nowrap;line-height:1}.current-marker small{display:block;font-size:10px}.current-marker b{display:block;font-size:15px;margin-top:2px}.marker-left{transform:none}.marker-left b{text-align:left}.marker-right{transform:translateX(-100%)}.marker-right b{text-align:right}.marker-note{font-size:10px;color:#a8d9ef;margin:4px 0}.slider-field input[type=range]{appearance:none;-webkit-appearance:none;background:transparent}.slider-field input[type=range]::-webkit-slider-runnable-track{height:5px;background:var(--line);border-radius:3px}.slider-field input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--blue);border:2px solid #fbebc9;margin-top:-7.5px}.slider-field input[type=range]::-moz-range-track{height:5px;background:var(--line);border-radius:3px}.slider-field input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--blue);border:2px solid #fbebc9}.matrix-table td{padding:0}.matrix-choice{display:block;min-width:60px;width:100%;min-height:44px;padding:4px;border:0;border-radius:0;font-size:11px;background:transparent;color:inherit}.matrix-choice:disabled{opacity:.55}.matrix-choice:hover:not(:disabled){box-shadow:inset 0 0 0 1px var(--blue)}.matrix-choice b{display:block}.current-cell,.target-cell{position:relative}.matrix-wrap{scroll-padding-top:86px;scroll-padding-left:108px}button,input,select{touch-action:manipulation}
+
+.efficiency-detail{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:6px;background:#101c28}.efficiency-detail>strong{font-size:13px}.efficiency-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}.efficiency-pair small,.efficiency-pair span{display:block;font-size:11px;color:var(--muted)}.efficiency-pair b{display:block;font-size:22px;color:#b8e4ce}.efficiency-pair b small{font-size:10px;font-weight:400}.diamond-total{font-size:13px;font-weight:600;color:var(--blue);margin:10px 0 0}.valuation-notes{margin-top:8px}.efficiency-detail table{font-size:11px}.efficiency-detail td{padding:6px 3px}.matrix-table .gate-cell{border-left:1px solid var(--orange);border-right:1px solid var(--orange)}
+</style></head><body><header><small>WHITEOUT SURVIVAL / HERO GEAR</small><h1>英雄装備 育成シミュレーター</h1><p class="helper">育成計画 / 12部位統合</p></header><main>
+<div class="selector"><label for="troop">兵種</label><select id="troop"><option value="infantry">盾兵</option><option value="lancer">槍兵</option><option value="marksman">弓兵</option></select></div>
+<div class="slots" aria-label="部位"><button data-slot="goggles" aria-pressed="true">ゴーグル</button><button data-slot="gloves" aria-pressed="false">グローブ</button><button data-slot="belt" aria-pressed="false">ベルト</button><button data-slot="boots" aria-pressed="false">ブーツ</button></div>
+<nav class="tabs" role="tablist" aria-label="入力と表示"><button data-tab="current" role="tab" aria-selected="true">現在</button><button data-tab="target" role="tab" aria-selected="false">目標</button><button data-tab="matrix" role="tab" aria-selected="false">バフ表</button><button data-tab="bag" role="tab" aria-selected="false">バッグ</button></nav>
+<div class="utility"><span>現在値を基準に育成を計画</span><button id="undo" disabled>操作を戻す</button></div><p id="notice" class="notice" role="status" aria-live="polite"></p><div id="errors" class="error" role="alert" hidden></div>
+<section class="panel" id="editor"><h2 id="editor-title"></h2><p id="editor-hint" class="helper"></p><p id="current-reference" class="current-reference" hidden></p><label><input type="checkbox" id="enabled"> この部位を合計に含める</label><div class="row"><label for="rarity">装備種類</label><select id="rarity"><option value="normal">通常（金）</option><option value="mythic">神話（赤）</option></select></div><div id="editor-fields"></div><p id="edit-note" class="helper"></p><div class="actions"><button id="copy-current">現在の状態を目標へコピー</button><button id="fix-condition">目標の精錬を必要条件に合わせる</button><button id="copy-goals">この兵種の4部位へ目標をコピー</button></div></section>
+<section class="panel" id="matrix-panel" hidden><h2>強化 × 精錬のバフ表</h2><div class="row"><label for="matrix-mode">表示内容</label><select id="matrix-mode"><option value="buff">バフ値（％）</option><option value="attack">攻撃系効率</option><option value="defense">防御系効率</option></select></div><p id="matrix-caption" class="helper"></p><div class="row"><label for="matrix-rarity">表示段階</label><select id="matrix-rarity"><option value="normal">通常 Lv0〜100</option><option value="mythic">神話 Lv1〜100</option></select></div><p class="helper">数値セルをタップすると目標に設定します（サブ段階0）。現在より低い状態は選べません。横軸＝強化レベル、縦軸＝精錬レベル。左右・上下にスクロールできます。各セルは精錬サブ段階0。バフ値モードは本体＋精錬の参考％、効率モードは現在からの合算増加pt／10万ダイヤです。配能は上の別行に表示し、神話20・40・60・80・100列を色分けします。「—」は育成条件を満たさない組合せです。</p><div class="legend"><span class="current">現：現在</span><span class="target">目：目標</span></div><p id="matrix-positions" class="helper"></p><p class="helper">サブ段階1〜4の位置は同じ精錬レベルの行で示します。正確なサブ段階込みの値は画面下部に表示します。</p><div class="actions"><button id="locate-current">現在地へ</button><button id="locate-target">目標地へ</button><button id="edit-target">目標タブで調整</button></div><p id="efficiency-legend" class="helper" hidden>緑が明るいほど高効率（同じ表示範囲内の相対色）。数値は現在からの増加pt／10万ダイヤです。0.00は増加なし、—は追加費用0または育成不可。表は精錬サブ段階0で評価します。</p><div class="matrix-wrap" tabindex="0" aria-label="バフ表をスクロール"><table class="matrix-table" id="matrix-table"></table></div><div id="efficiency-detail" class="efficiency-detail"></div><details class="valuation-notes"><summary>ダイヤ換算の基準・読み方</summary><p class="helper">攻撃系＝攻撃＋殺傷、防御系＝防御＋HP。現在からの増加pt ÷ この1部位の必要素材換算額 × 100,000。両系統とも同じ全素材費用を分母に使い、費用を振り分けません。実際のダメージや耐久力ではなく、同じ重みで合算した素材効率指標です。本体％の参考値を含みます。</p><p class="helper">ユーザー指定価格：100 XP＝1,000ダイヤ（1 XP＝10）、源石1個＝2,500、ミスリル1個＝10,000、宝箱1個＝2,000。XPは端数を比例換算した価値であり、100 XPパーツの購入個数へ切り上げません。</p><p class="helper">金装備は排出率1%・独立抽選・天井なしの計算モデルで1個＝200,000ダイヤの期待額。確定購入額ではありません。紫・青の副産物価値は含みません。<a href="https://www.whiteoutsurvival.wiki/ja/items/英雄装備ラッキー宝箱/" target="_blank" rel="noopener noreferrer">公式Wiki：金1%・紫10%・青89%</a>。</p><p class="helper">効率は所持数に左右されない消費素材総額で計算。不足分の換算はバッグで確認できます。</p></details></section>
+<section class="panel" id="bag-panel" hidden><h2>アイテムバッグ</h2><p class="helper">全12部位の必要素材から所持数を差し引きます。強化素材は合計XP、素材装備は育成対象を除いた個数を入力してください。計算で所持数は消費しません。</p><div class="bag-fields"><label>強化経験値（合計XP）<input id="bag-xp" type="text" inputmode="numeric"><input id="bag-range-xp" type="range" min="0" max="1000000" step="1" aria-label="強化経験値の所持数スライダー"><span class="range-labels"><span>0</span><span id="bag-cap-xp"></span></span></label><label>精錬エナジー源石<input id="bag-stones" type="text" inputmode="numeric"><input id="bag-range-stones" type="range" min="0" max="1000000" step="1" aria-label="精錬エナジー源石の所持数スライダー"><span class="range-labels"><span>0</span><span id="bag-cap-stones"></span></span></label><label>ミスリル<input id="bag-mithril" type="text" inputmode="numeric"><input id="bag-range-mithril" type="range" min="0" max="1000000" step="1" aria-label="ミスリルの所持数スライダー"><span class="range-labels"><span>0</span><span id="bag-cap-mithril"></span></span></label><label>素材用レジェンド装備<input id="bag-gear" type="text" inputmode="numeric"><input id="bag-range-gear" type="range" min="0" max="1000000" step="1" aria-label="素材用レジェンド装備の所持数スライダー"><span class="range-labels"><span>0</span><span id="bag-cap-gear"></span></span></label></div><p id="bag-error" class="error" role="alert"></p><div id="bag-summary"></div></section>
+<section class="panel"><h2>全12部位の必要素材</h2><p class="helper">全兵種・チェックした部位の合計</p><div id="result-summary"></div><p id="plan-diamonds" class="helper"></p><div id="troop-stats"></div><details><summary>部位別の育成ルート</summary><div id="routes"></div></details><div class="actions"><button id="export">入力を保存</button><button id="import">入力を読み込む</button><button id="result-save">結果を保存</button><input id="file" type="file" accept=".json,application/json" hidden></div><p class="helper">12部位とバッグを端末内に自動保存。ファイル保存した入力は別端末へ移せます。本体％は参考値です。公式の神話XP総額と個別表には950 XPの未解決差があります。</p></section>
 <section class="panel sources" id="sources"><details><summary>数値の根拠・未確定点・素材表を見る</summary>
   <div class="sources-grid">
   <div><h3>採用した資料</h3><ul>
@@ -229,18 +41,17 @@ button[aria-pressed=true] {background:var(--primary);color:var(--surface);}
     <li>公式XP集計と個別表の差：950 XP。個別表を優先し、20→21と21→22はユーザー確認とも一致。</li>
     <li>本体の全レベル実測、内部精度、ゲーム内丸め順序は未確認。独自の補間・推測は行いません。</li>
     <li>大溶鉱炉・サーバー経過日数による機能解放は判定対象外。ゲーム内で解放済みであることが前提です。</li>
-    <li>専用装備、低レア装備、分解・素材還元、課金換算は対象外。</li>
+    <li>専用装備、低レア装備、分解・素材還元、現金への換算は対象外。</li>
   </ul></div>
   </div>
   <h3>配能の突破素材</h3><div class="table-wrap"><table class="audit-table"><thead><tr><th>神話レベル</th><th>必要精錬</th><th>ミスリル</th><th>素材装備</th></tr></thead><tbody id="gates-table"></tbody></table></div>
   <details><summary>精錬サブ段階の消費素材</summary><p class="helper">各行は「その状態へ到達する時」の消費。通常の精錬上限は10-0。神話化後は20-0まで計算します。</p><div class="table-wrap"><table class="audit-table"><thead><tr><th>精錬の進行</th><th>源石</th><th>素材装備</th><th>本体への上昇率</th></tr></thead><tbody id="forge-table"></tbody></table></div></details>
   <details><summary>レベル別の強化XP</summary><p class="helper">到達レベルへの必要XP。神話Lv1は練磨、Lv20の倍数は配能で進むため、XP消費は0です。</p><div class="table-wrap"><table class="audit-table"><thead><tr><th>到達レベル</th><th>通常 XP</th><th>神話 XP</th></tr></thead><tbody id="xp-table"></tbody></table></div></details>
 </details></section>
-<footer>オフラインで計算できます。入力はこの端末内で処理・保存されます。非公式ツールです。</footer>
-</main>
-<noscript><p class="notice error">計算にはJavaScriptを有効にしてください。</p></noscript>
-<script id="model-script">
-/* 英雄装備の計算モデル。遠征の装備本体と配能を別に保持する。 */
+
+<p class="helper">入力は端末内だけで処理します。非公式ツールです。</p></main>
+<aside class="live" aria-label="選択部位のリアルタイム比較"><div class="live-inner"><small id="live-label"></small><strong id="live-body" aria-live="polite"></strong><p id="live-bonus"></p><p id="live-costs" class="live-costs"></p></div></aside>
+<noscript>計算にはJavaScriptを有効にしてください。</noscript><script>/* 英雄装備の計算モデル。遠征の装備本体と配能を別に保持する。 */
 const GearModel = (() => {
   'use strict';
   const gates = Object.freeze([
@@ -411,384 +222,339 @@ const GearModel = (() => {
     const delta = Object.fromEntries(['base', 'forge', 'body', 'attack', 'defense', 'lethality', 'health'].map(key => [key, after[key] - before[key]]));
     return { input, errors: [], costs, route, before, after, delta };
   }
-  return Object.freeze({ gates, troopNames, slotNames, normalize, validate, validateState, minimumMastery, normalXP, mythicXP, xpBetween, forgeSteps, bonusAt, statsAt, calculate, stateLabel, forgeLabel });
+  // ユーザー提示の換算価格。金装備は金排出率1%・独立抽選・天井なしの期待額。
+  const diamondRates = Object.freeze({ xp:10, stones:2500, mithril:10000, luckyChest:2000, goldChance:0.01, totalGear:200000 });
+  function diamondValue(costs) {
+    const parts=Object.fromEntries(['xp','stones','mithril','totalGear'].map(key=>[key,costs[key]*diamondRates[key]]));
+    return {...parts,total:Object.values(parts).reduce((sum,value)=>sum+value,0)};
+  }
+  function growthEfficiency(result) {
+    if(result.errors.length)return null;
+    const diamonds=diamondValue(result.costs);
+    const attackGain=result.delta.attack+result.delta.lethality;
+    const defenseGain=result.delta.defense+result.delta.health;
+    return {diamonds,attackGain,defenseGain,attack:diamonds.total>0?attackGain/diamonds.total*100000:null,defense:diamonds.total>0?defenseGain/diamonds.total*100000:null};
+  }
+  return Object.freeze({ gates, troopNames, slotNames, normalize, validate, validateState, minimumMastery, normalXP, mythicXP, xpBetween, forgeSteps, bonusAt, statsAt, calculate, stateLabel, forgeLabel, diamondRates, diamondValue, growthEfficiency });
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = GearModel;
-
-</script>
-<script id="data-script">
-const GearData = Object.freeze({"normalStats": [3.33, 3.8, 4.26, 4.73, 5.2, 5.66, 6.13, 6.6, 7.06, 7.53, 8.0, 8.46, 8.93, 9.4, 9.86, 10.33, 10.8, 11.26, 11.73, 12.2, 12.66, 13.13, 13.6, 14.06, 14.53, 15.0, 15.4636, 15.9302769230769, 16.3969538461538, 16.8636307692308, 17.3303076923077, 17.7969846153846, 18.2636615384615, 18.7303384615385, 19.1970153846154, 19.6636923076923, 20.1303692307692, 20.5970461538462, 21.0637230769231, 21.5304, 21.9970769230769, 22.4637538461538, 22.9304307692308, 23.3971076923077, 23.8637846153846, 24.3304615384615, 24.7971384615385, 25.2638153846154, 25.7304923076923, 26.1971692307692, 26.6638461538462, 27.1305230769231, 27.5972, 28.0638769230769, 28.5305538461538, 28.9972307692308, 29.4639076923077, 29.9305846153846, 30.3972615384615, 30.8639384615385, 31.3306153846154, 31.7972923076923, 32.2639692307692, 32.7306461538461, 33.1973230769231, 33.664, 34.1306769230769, 34.5973538461538, 35.0640307692308, 35.5307076923077, 35.9973846153846, 36.4640615384615, 36.9307384615385, 37.3974153846154, 37.8640923076923, 38.3307692307692, 38.7974461538461, 39.2641230769231, 39.7308, 40.1974769230769, 40.6641538461538, 41.1308307692308, 41.5975076923077, 42.0641846153846, 42.5308615384615, 42.9975384615385, 43.4642153846154, 43.9308923076923, 44.3975692307692, 44.8642461538461, 45.3309230769231, 45.7976, 46.2642769230769, 46.7309538461538, 47.1976307692308, 47.6643076923077, 48.1309846153846, 48.5976615384615, 49.0643384615385, 49.5310153846154, 50.0], "mythicStats": [null, 50.5, 51.0, 51.5, 52.0, 52.5, 53.0, 53.5, 54.0, 54.5, 55.0, 55.5, 56.0, 56.5, 57.0, 57.5, 58.0, 58.5, 59.0, 59.5, 60.0, 60.5, 61.0, 61.5, 62.0, 62.5, 63.0, 63.5, 64.0, 64.5, 65.0, 65.5, 66.0, 66.5, 67.0, 67.5, 68.0, 68.5, 69.0, 69.5, 70.0, 70.5, 71.0, 71.5, 72.0, 72.5, 73.0, 73.5, 74.0, 74.5, 75.0, 75.5, 76.0, 76.5, 77.0, 77.5, 78.0, 78.5, 79.0, 79.5, 80.0, 80.5, 81.0, 81.5, 82.0, 82.5, 83.0, 83.5, 84.0, 84.5, 85.0, 85.5, 86.0, 86.5, 87.0, 87.5, 88.0, 88.5, 89.0, 89.5, 90.0, 90.5, 91.0, 91.5, 92.0, 92.5, 93.0, 93.5, 94.0, 94.5, 95.0, 95.5, 96.0, 96.5, 97.0, 97.5, 98.0, 98.5, 99.0, 99.5, 100.0]});
-</script>
-<script id="app-script">
-(() => {
+</script><script>const GearData=Object.freeze({"normalStats": [3.33, 3.8, 4.26, 4.73, 5.2, 5.66, 6.13, 6.6, 7.06, 7.53, 8.0, 8.46, 8.93, 9.4, 9.86, 10.33, 10.8, 11.26, 11.73, 12.2, 12.66, 13.13, 13.6, 14.06, 14.53, 15.0, 15.4636, 15.9302769230769, 16.3969538461538, 16.8636307692308, 17.3303076923077, 17.7969846153846, 18.2636615384615, 18.7303384615385, 19.1970153846154, 19.6636923076923, 20.1303692307692, 20.5970461538462, 21.0637230769231, 21.5304, 21.9970769230769, 22.4637538461538, 22.9304307692308, 23.3971076923077, 23.8637846153846, 24.3304615384615, 24.7971384615385, 25.2638153846154, 25.7304923076923, 26.1971692307692, 26.6638461538462, 27.1305230769231, 27.5972, 28.0638769230769, 28.5305538461538, 28.9972307692308, 29.4639076923077, 29.9305846153846, 30.3972615384615, 30.8639384615385, 31.3306153846154, 31.7972923076923, 32.2639692307692, 32.7306461538461, 33.1973230769231, 33.664, 34.1306769230769, 34.5973538461538, 35.0640307692308, 35.5307076923077, 35.9973846153846, 36.4640615384615, 36.9307384615385, 37.3974153846154, 37.8640923076923, 38.3307692307692, 38.7974461538461, 39.2641230769231, 39.7308, 40.1974769230769, 40.6641538461538, 41.1308307692308, 41.5975076923077, 42.0641846153846, 42.5308615384615, 42.9975384615385, 43.4642153846154, 43.9308923076923, 44.3975692307692, 44.8642461538461, 45.3309230769231, 45.7976, 46.2642769230769, 46.7309538461538, 47.1976307692308, 47.6643076923077, 48.1309846153846, 48.5976615384615, 49.0643384615385, 49.5310153846154, 50.0], "mythicStats": [null, 50.5, 51.0, 51.5, 52.0, 52.5, 53.0, 53.5, 54.0, 54.5, 55.0, 55.5, 56.0, 56.5, 57.0, 57.5, 58.0, 58.5, 59.0, 59.5, 60.0, 60.5, 61.0, 61.5, 62.0, 62.5, 63.0, 63.5, 64.0, 64.5, 65.0, 65.5, 66.0, 66.5, 67.0, 67.5, 68.0, 68.5, 69.0, 69.5, 70.0, 70.5, 71.0, 71.5, 72.0, 72.5, 73.0, 73.5, 74.0, 74.5, 75.0, 75.5, 76.0, 76.5, 77.0, 77.5, 78.0, 78.5, 79.0, 79.5, 80.0, 80.5, 81.0, 81.5, 82.0, 82.5, 83.0, 83.5, 84.0, 84.5, 85.0, 85.5, 86.0, 86.5, 87.0, 87.5, 88.0, 88.5, 89.0, 89.5, 90.0, 90.5, 91.0, 91.5, 92.0, 92.5, 93.0, 93.5, 94.0, 94.5, 95.0, 95.5, 96.0, 96.5, 97.0, 97.5, 98.0, 98.5, 99.0, 99.5, 100.0]});</script><script>(() => {
   'use strict';
-  const state = {
-    input: {
-      troop: 'lancer', slot: 'goggles',
-      current: { rarity: 'normal', level: 82, mastery: 8, sub: 3 },
-      target: { rarity: 'mythic', level: 65, mastery: 13, sub: 0 }
-    },
-    bag: { xp:0, stones:0, mithril:0, gear:0 }, result: null, busy: false, storage: true, notice: '', run: 0
-  };
   const $ = id => document.getElementById(id);
-  const number = value => new Intl.NumberFormat('ja-JP').format(value);
-  const percent = value => `${value.toFixed(2)}%`;
-  const points = value => `${value > 0 ? '+' : ''}${value.toFixed(2)} pt`;
-  const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-  const storageKey = 'wos-hero-gear-plan-v1';
-  const copy = value => JSON.parse(JSON.stringify(value));
-  const bagKeys = ['xp','stones','mithril','gear'];
-  const bagNames = {xp:'強化経験値',stones:'精錬エナジー源石',mithril:'ミスリル',gear:'素材用レジェンド英雄装備'};
-  function normalizeBag(bag = {}) {
-    if (!bag || typeof bag !== 'object' || Array.isArray(bag)) throw new Error('バッグの保存形式が正しくありません。');
-    return Object.fromEntries(bagKeys.map(key => {
-      const raw = String(bag[key] ?? 0).normalize('NFKC').trim();
-      const value = /^\d+$/.test(raw) ? Number(raw) : NaN;
-      if (!Number.isSafeInteger(value) || value < 0) throw new Error(`${bagNames[key]}の所持数は0以上の整数で入力してください。`);
-      return [key,value];
-    }));
+  const copy = v => JSON.parse(JSON.stringify(v));
+  const esc = v => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = v => new Intl.NumberFormat('ja-JP').format(v);
+  const parse = v => {const s=String(v??'').normalize('NFKC').trim();return /^\d+$/.test(s)?Number(s):NaN;};
+  const init = {rarity:'normal',level:0,mastery:0,sub:0};
+  const state = {tab:'current',troop:'infantry',slot:'goggles',matrixRarity:'normal',rows:Object.keys(GearModel.troopNames).flatMap(troop=>Object.keys(GearModel.slotNames).map(slot=>({troop,slot,enabled:true,current:copy(init),target:copy(init),targetEdited:false}))),bag:{xp:0,stones:0,mithril:0,gear:0},results:[],costs:null,errors:[],notice:''};
+  const costKeys=['xp','stones','mithril','totalGear','ascensionGear','gateGear','forgeGear'];
+  const bagLabels={xp:'強化経験値（合計XP）',stones:'精錬エナジー源石',mithril:'ミスリル',gear:'素材用レジェンド装備'};
+  const bagKeys=Object.keys(bagLabels);
+  const row = () => state.rows.find(r=>r.troop===state.troop&&r.slot===state.slot);
+  state.matrixMode='buff';
+  const matrixCache={key:'',cells:new Map(),attackMax:0,defenseMax:0};
+  const costNames={xp:'強化XP',stones:'精錬エナジー源石',mithril:'ミスリル',totalGear:'素材用金装備（期待額）'};
+  const efficiencyText=value=>value===null?'—':value>0&&value<0.01?'<0.01':value.toFixed(2);
+  function prepareMatrixCosts(rarity){
+    const r=GearModel.normalize(row());
+    const key=JSON.stringify({current:r.current,troop:r.troop,slot:r.slot,rarity});
+    if(matrixCache.key===key)return;
+    matrixCache.key=key;matrixCache.cells.clear();matrixCache.attackMax=0;matrixCache.defenseMax=0;
+    for(let level=rarity==='mythic'?1:0;level<=100;level++)for(let mastery=rarity==='mythic'?10:0;mastery<=(rarity==='mythic'?20:10);mastery++){
+      const result=GearModel.calculate({...r,target:{rarity,level,mastery,sub:0}},GearData);
+      const efficiency=GearModel.growthEfficiency(result);
+      matrixCache.cells.set(`${level}:${mastery}`,efficiency);
+      if(efficiency){matrixCache.attackMax=Math.max(matrixCache.attackMax,efficiency.attack??0);matrixCache.defenseMax=Math.max(matrixCache.defenseMax,efficiency.defense??0);}
+    }
+  }
+  function renderEfficiencyDetail(){
+    const r=GearModel.calculate(row(),GearData),e=GearModel.growthEfficiency(r);
+    $('efficiency-detail').hidden=!e;
+    if(!e)return;
+    $('efficiency-detail').innerHTML=`<strong>選択中の目標 · この1部位${row().enabled?'':'（合計の対象外）'}</strong><p class="helper">${esc(GearModel.stateLabel(r.input.current))} → ${esc(GearModel.stateLabel(r.input.target))}</p><div class="efficiency-pair"><div><small>攻撃＋殺傷</small><b>${efficiencyText(e.attack)}<small> pt／10万ダイヤ</small></b><span>合算 +${e.attackGain.toFixed(2)}pt</span></div><div><small>防御＋HP</small><b>${efficiencyText(e.defense)}<small> pt／10万ダイヤ</small></b><span>合算 +${e.defenseGain.toFixed(2)}pt</span></div></div><p class="diamond-total">素材換算 ${num(e.diamonds.total)} ダイヤ</p><details><summary>増加量・ダイヤ換算の内訳</summary><p class="helper">攻撃 +${r.delta.attack.toFixed(2)} / 殺傷 +${r.delta.lethality.toFixed(2)} / 防御 +${r.delta.defense.toFixed(2)} / HP +${r.delta.health.toFixed(2)} pt</p><table><tbody>${Object.keys(costNames).map(k=>`<tr><td>${costNames[k]}</td><td>${num(r.costs[k])}${k==='xp'?' XP':'個'}</td><td>${num(e.diamonds[k])} ダイヤ</td></tr>`).join('')}</tbody></table><p class="helper">金装備内訳：神話化 ${num(r.costs.ascensionGear*GearModel.diamondRates.totalGear)} / 配能 ${num(r.costs.gateGear*GearModel.diamondRates.totalGear)} / 精錬 ${num(r.costs.forgeGear*GearModel.diamondRates.totalGear)} ダイヤ（期待額）</p></details>`;
+  }
+  const history=[];
+  function checkpoint(){
+    const snapshot=JSON.stringify({rows:state.rows,bag:state.bag});
+    if(history.at(-1)!==snapshot)history.push(snapshot);
+    if(history.length>20)history.shift();
+    $('undo').disabled=!history.length;
+  }
+  function undo(){
+    const current=JSON.stringify({rows:state.rows,bag:state.bag});
+    let snapshot=history.pop();while(snapshot===current)snapshot=history.pop();if(!snapshot){$('undo').disabled=true;return;}
+    Object.assign(state,JSON.parse(snapshot));state.notice='直前の操作を取り消しました。';refresh(true);
+  }
+  const validateBag = b => {
+    if(!b||typeof b!=='object'||Array.isArray(b))throw new Error('バッグの形式が正しくありません。');
+    const result=Object.fromEntries(bagKeys.map(k=>[k,parse(b[k]??0)]));
+    if(Object.values(result).some(v=>!Number.isSafeInteger(v)||v<0))throw new Error('所持数は0以上の整数で入力してください。');
+    return result;
+  };
+  function loadPlan(plan) {
+    if(plan?.schemaVersion!==2||plan.rows?.length!==12)throw new Error('12部位の入力保存ファイルを選んでください。');
+    const rows=state.rows.map((r,i)=>{
+      const x=plan.rows[i];
+      if(x?.troop!==r.troop||x?.slot!==r.slot||typeof x.enabled!=='boolean'||!x.current||!x.target)throw new Error('部位の保存形式が正しくありません。');
+      const normalized=GearModel.normalize(x);
+      if(x.enabled&&GearModel.validate(normalized).length)throw new Error('保存ファイルに無効な育成状態があります。');
+      return {...normalized,enabled:x.enabled,targetEdited:typeof x.targetEdited==='boolean'?x.targetEdited:JSON.stringify(normalized.current)!==JSON.stringify(normalized.target)};
+    });
+    const bag=validateBag(plan.bag??{});
+    return {rows,bag};
+  }
+  try {
+    const saved=localStorage.getItem('wos-hero-gear-mobile-v2');
+    if(saved){Object.assign(state,loadPlan(JSON.parse(saved)));state.notice='前回の12部位とバッグを復元しました。';}
+    else {
+      const oldBatch=JSON.parse(localStorage.getItem('wos-hero-gear-batch-v1')||'null');
+      const oldSingle=JSON.parse(localStorage.getItem('wos-hero-gear-plan-v1')||'null');
+      if(oldBatch?.rows){Object.assign(state,loadPlan({schemaVersion:2,rows:oldBatch.rows,bag:oldSingle?.bag??{}}));state.notice='以前の12部位入力とバッグを引き継ぎました。';}
+      else if(oldSingle?.input&&!GearModel.validate(GearModel.normalize(oldSingle.input)).length){const i=state.rows.findIndex(r=>r.troop===oldSingle.input.troop&&r.slot===oldSingle.input.slot);state.rows[i]={...state.rows[i],...GearModel.normalize(oldSingle.input),targetEdited:true};state.bag=validateBag(oldSingle.bag??{});state.notice='以前の1部位入力とバッグを引き継ぎました。';}
+    }
+  }catch(error){state.notice='以前の入力を復元できませんでした：'+error.message;}
+  function calculate() {
+    state.errors=[];state.costs=Object.fromEntries(costKeys.map(k=>[k,0]));
+    state.results=state.rows.map(r=>{
+      if(!r.enabled)return null;
+      const result=GearModel.calculate(r,GearData);
+      if(result.errors.length)state.errors.push(...result.errors.map(e=>`${GearModel.troopNames[r.troop]}・${GearModel.slotNames[r.slot]}：${e}`));
+      else costKeys.forEach(k=>state.costs[k]+=result.costs[k]);
+      return result;
+    });
+    if(state.errors.length)state.costs=null;
+    let bag;
+    try{bag=validateBag(state.bag);}catch{}
+    if(state.costs&&bag){try{localStorage.setItem('wos-hero-gear-mobile-v2',JSON.stringify({schemaVersion:2,rows:state.rows,bag}));}catch{state.notice='自動保存が使えません。入力をファイル保存してください。';}}
+  }
+  function sliderMarkup(key,label,min,max,value,unit='') {
+    const valid=Number.isInteger(parse(value));
+    const start=valid?Math.min(max,Math.max(min,parse(value))):min;
+    return `<div class="slider-field"><div class="field-top"><label for="number-${key}">${label}</label><div><input id="number-${key}" data-number="${key}" type="text" inputmode="numeric" value="${esc(value)}" aria-describedby="limits-${key}"><span>${unit}</span></div></div>${markerMarkup(key,min,max)}<input id="range-${key}" aria-label="${label}のスライダー" data-range="${key}" type="range" min="${min}" max="${max}" step="1" value="${start}"><div class="range-labels" id="limits-${key}"><span>${min}</span><span>${max}</span></div></div>`;
+  }
+  function markerMarkup(key,min,max){
+    if(state.tab!=='target')return '';
+    const r=GearModel.normalize(row()),value=r.current[key];
+    if(!Number.isInteger(value))return '<p class="helper">現在値を確認してください</p>';
+    if((key==='level'&&r.current.rarity!==r.target.rarity)||value<min||value>max)return `<p class="marker-note">現在 ${key==='level'?GearModel.stateLabel(r.current):'精錬 '+GearModel.forgeLabel(r.current)} · 表示範囲外</p>`;
+    const pct=(value-min)/(max-min)*100;
+    return `<div class="marker-track" aria-label="現在値 ${value}"><span class="current-marker ${pct<12?'marker-left':pct>88?'marker-right':''}" style="left:${pct}%"><small>現在 ${value}${key==='sub'?'（精錬'+r.current.mastery+'）':''}</small><b>▽</b></span></div>`;
+  }
+  function renderEditor() {
+    const side=state.tab;
+    if(!['current','target'].includes(side))return;
+    const r=row(),s=r[side],mythic=s.rarity==='mythic',max=mythic?20:10;
+    $('editor-title').textContent=side==='current'?'現在の状態を入力':'目標の状態を入力';
+    $('editor-hint').textContent=side==='current'?'装備の現在値を登録':'現在値から育成を計画 · スライダーは現在値より下がりません';
+    $('enabled').checked=r.enabled;
+    $('current-reference').hidden=side!=='target';
+    const c=GearModel.normalize(r).current;
+    $('current-reference').textContent=`現在：${GearModel.troopNames[r.troop]}・${GearModel.slotNames[r.slot]} / ${GearModel.stateLabel(c)}`;
+    $('rarity').value=s.rarity;
+    $('editor-fields').innerHTML=sliderMarkup('level','強化レベル',mythic?1:0,100,s.level,'Lv')+sliderMarkup('mastery','精錬レベル',mythic?10:0,max,s.mastery)+sliderMarkup('sub','精錬サブ段階',0,4,s.sub);
+    if(parse(s.mastery)<4||parse(s.mastery)===max){$('range-sub').disabled=true;$('number-sub').disabled=true;}
+    $('copy-current').hidden=side!=='target';
+    $('fix-condition').hidden=side!=='target';
+    $('copy-goals').hidden=side!=='target';
+    $('edit-note').textContent=mythic?'神話化直後はLv1。20・40・60・80・100で配能突破。':'通常Lv0〜100。精錬はLv20から解放。';
   }
   function renderBag() {
+    for(const key of bagKeys){
+      if(document.activeElement!==$('bag-'+key))$('bag-'+key).value=state.bag[key];
+      const need=state.costs?.[key==='gear'?'totalGear':key]??0;
+      const cap=Math.max({xp:1000000,stones:5000,mithril:500,gear:500}[key],need,parse(state.bag[key])||0);
+      $('bag-range-'+key).max=cap;$('bag-range-'+key).value=parse(state.bag[key])||0;
+      $('bag-cap-'+key).textContent=num(cap);
+    }
     let bag;
-    try { bag = normalizeBag(state.bag); $('bag-error').textContent = ''; }
-    catch (error) { $('bag-error').textContent = error.message; }
-    $('bag-summary').hidden = !bag || !state.result || Boolean(state.result.errors.length);
-    if (state.batchCosts === null) { $('bag-summary').hidden = true; $('bag-error').textContent = '一括入力のエラーを直すと、不足数を表示します。'; return; }
-    if ($('bag-summary').hidden) return;
-    const costs = state.batchCosts ?? state.result.costs;
-    const shortages = bagKeys.map(key => Math.max(0, (key === 'gear' ? costs.totalGear : costs[key]) - bag[key]));
-    $('bag-status').textContent = shortages.every(value => value === 0) ? '素材はすべて足りています。' : '目標までに不足する素材';
-    $('bag-table').innerHTML = bagKeys.map((key,i) => `<tr><td>${bagNames[key]}</td><td>${number(bag[key])}</td><td class="${shortages[i] ? '' : 'gain'}">${number(shortages[i])}</td></tr>`).join('');
-  }
-  function parsePlan(text) {
-    let plan;
-    try { plan = JSON.parse(text.replace(/^\uFEFF/, '')); }
-    catch { throw new Error('JSONを読み込めませんでした。このツールで保存した入力ファイルを選んでください。'); }
-    if (plan?.schemaVersion !== 1 || !plan.input?.current || !plan.input?.target) throw new Error('対応していない入力ファイルです。形式バージョン1の保存ファイルを選んでください。');
-    const input = GearModel.normalize(plan.input);
-    const errors = GearModel.validate(input);
-    if (errors.length) throw new Error(`ファイル内の入力に問題があります：${errors.join(' ')}`);
-    return input;
-  }
-  try {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try { const input = parsePlan(saved); const bag = normalizeBag(JSON.parse(saved).bag); state.input = input; state.bag = bag; state.notice = '前回の入力を復元しました。'; }
-      catch (error) { state.notice = `保存された入力を復元できなかったため、入力例を表示しています。${error.message}`; }
-    }
-  } catch { state.storage = false; state.notice = 'この環境では自動保存を利用できません。「入力を保存」でファイル保存できます。'; }
-
-  function configure(prefix) {
-    const value = state.input[prefix];
-    const mythic = value.rarity === 'mythic';
-    const min = mythic ? 10 : 0;
-    const max = mythic ? 20 : 10;
-    $(prefix + '-mastery').innerHTML = Array.from({ length: max - min + 1 }, (_, i) => `<option value="${min + i}">${min + i}</option>`).join('');
-    $(prefix + '-mastery').value = String(value.mastery);
-    const subMax = value.mastery >= 4 && value.mastery < max ? 4 : 0;
-    $(prefix + '-sub').innerHTML = Array.from({ length: subMax + 1 }, (_, i) => `<option value="${i}">${i}</option>`).join('');
-    $(prefix + '-sub').value = String(value.sub);
-    $(prefix + '-sub').disabled = subMax === 0;
-    $(prefix + '-help').textContent = mythic ? '神話Lv1〜100。Lv20ごとに必要な精錬が上がります。' : '通常Lv0〜100。精錬はLv20で解放、上限は10-0。';
-  }
-  function syncControls() {
-    for (const key of bagKeys) $('bag-' + key).value = state.bag[key];
-    $('troop').value = state.input.troop;
-    $('slot').value = state.input.slot;
-    for (const prefix of ['current', 'target']) {
-      $(prefix + '-rarity').value = state.input[prefix].rarity;
-      $(prefix + '-level').value = state.input[prefix].level;
-      configure(prefix);
+    try{bag=validateBag(state.bag);$('bag-error').textContent='';}catch(error){$('bag-error').textContent=error.message;}
+    $('bag-summary').hidden=!bag||!state.costs;
+    if(bag&&state.costs)$('bag-summary').innerHTML=`<table><thead><tr><th>素材</th><th>必要</th><th>不足</th></tr></thead><tbody>${bagKeys.map(k=>{const need=state.costs[k==='gear'?'totalGear':k];return `<tr><td>${bagLabels[k].replace('（合計XP）','')}</td><td>${num(need)}</td><td>${num(Math.max(0,need-bag[k]))}</td></tr>`;}).join('')}</tbody></table>`;
+    if(bag&&state.costs){
+      const shortage=Object.fromEntries(bagKeys.map(k=>{const costKey=k==='gear'?'totalGear':k;return [costKey,Math.max(0,state.costs[costKey]-bag[k])];}));
+      $('bag-summary').innerHTML+=`<p class="diamond-total">不足分の換算 ${num(GearModel.diamondValue(shortage).total)} ダイヤ</p><p class="helper">金装備は期待額。バフ表の効率は所持数に左右されない消費素材総額で計算します。</p>`;
     }
   }
-  function readControls() {
-    const input = { troop: $('troop').value, slot: $('slot').value };
-    for (const prefix of ['current', 'target']) {
-      input[prefix] = {
-        rarity: $(prefix + '-rarity').value, level: $(prefix + '-level').value,
-        mastery: $(prefix + '-mastery').value, sub: $(prefix + '-sub').value
-      };
+  function renderSummary() {
+    const selected=row();
+    const current=GearModel.normalize(selected).current,target=GearModel.normalize(selected).target;
+    const validCurrent=!GearModel.validateState(current,'現在').length,validTarget=!GearModel.validateState(target,'目標').length;
+    const before=validCurrent?GearModel.statsAt(current,state.slot,GearData):null,after=validTarget?GearModel.statsAt(target,state.slot,GearData):null;
+    const name=state.slot==='goggles'||state.slot==='boots'?'殺傷力':'HP';
+    $('live-label').textContent=`${GearModel.troopNames[state.troop]}・${GearModel.slotNames[state.slot]} ${name}（参考）`;
+    $('live-body').textContent=before&&after?`${before.body.toFixed(2)} → ${after.body.toFixed(2)}%（${after.body-before.body>=0?'+':''}${(after.body-before.body).toFixed(2)}pt）`:'状態の入力を確認してください';
+    $('live-bonus').textContent=before&&after?`配能 攻撃 ${before.attack}→${after.attack}% / 防御 ${before.defense}→${after.defense}%`:'配能は本体・精錬と別に計算';
+    $('live-costs').textContent=state.costs?`全12部位：XP ${num(state.costs.xp)} / 源石 ${num(state.costs.stones)} / ミスリル ${num(state.costs.mithril)} / 装備 ${num(state.costs.totalGear)}`:'合計は入力エラーのため未表示';
+    $('errors').hidden=!state.errors.length;
+    $('errors').innerHTML=state.errors.map(e=>`<div>${esc(e)}</div>`).join('');
+    $('notice').textContent=state.notice;
+    $('result-summary').innerHTML=state.costs?`<div class="totals">${[['xp','強化XP'],['stones','源石'],['mithril','ミスリル'],['totalGear','素材装備']].map(([k,label])=>`<div><small>${label}</small><strong>${num(state.costs[k])}</strong></div>`).join('')}</div><p class="helper">装備内訳：神話化 ${num(state.costs.ascensionGear)} / 配能 ${num(state.costs.gateGear)} / 精錬 ${num(state.costs.forgeGear)} ・ 対象${state.rows.filter(r=>r.enabled).length}部位</p>`:'';
+    $('export').disabled=!state.costs||Boolean($('bag-error').textContent);
+    $('result-save').disabled=!state.costs;
+    $('undo').disabled=!history.length;
+    $('plan-diamonds').textContent=state.costs?`全対象部位の素材換算：${num(GearModel.diamondValue(state.costs).total)} ダイヤ（金装備は期待額）`:'';
+    renderEfficiencyDetail();
+  }
+  function renderRoutes() {
+    $('routes').innerHTML=state.results.map((r,i)=>r&&!r.errors.length?`<details><summary>${GearModel.troopNames[state.rows[i].troop]}・${GearModel.slotNames[state.rows[i].slot]} ${GearModel.stateLabel(r.input.current)} → ${GearModel.stateLabel(r.input.target)}</summary>${r.route.map(step=>`<p class="helper">${esc(step.text)}：XP ${num(step.xp||0)} / 源石 ${step.stones||0} / ミスリル ${step.mithril||0} / 装備 ${step.gear||0}${step.detail?' ・ '+esc(step.detail):''}</p>`).join('')||'<p>追加素材なし</p>'}</details>`:'').join('');
+    $('troop-stats').innerHTML=Object.entries(GearModel.troopNames).map(([troop,name])=>{
+      const rs=state.results.filter((r,i)=>r&&!r.errors.length&&state.rows[i].troop===troop);
+      return `<details><summary>${name}の遠征ステータス合計</summary><table><thead><tr><th>効果</th><th>現在</th><th>目標</th><th>差分pt</th></tr></thead><tbody>${[['attack','攻撃'],['defense','防御'],['lethality','殺傷（参考）'],['health','HP（参考）']].map(([k,label])=>{const b=rs.reduce((s,r)=>s+r.before[k],0),a=rs.reduce((s,r)=>s+r.after[k],0);return `<tr><td>${label}</td><td>${b.toFixed(2)}%</td><td>${a.toFixed(2)}%</td><td>${(a-b).toFixed(2)}</td></tr>`;}).join('')}</tbody></table></details>`;
+    }).join('');
+    $('routes').hidden=Boolean(state.errors.length);$('troop-stats').hidden=Boolean(state.errors.length);
+  }
+  function matrixCell(rarity,level,mastery) {
+    const r=row(),s={rarity,level,mastery,sub:0};
+    if(GearModel.validateState(s,'').length)return '<td class="unavailable">—</td>';
+    const c=GearModel.normalize(r).current,t=GearModel.normalize(r).target;
+    const isC=c.rarity===rarity&&c.level===level&&c.mastery===mastery,isT=t.rarity===rarity&&t.level===level&&t.mastery===mastery;
+    const body=GearModel.statsAt(s,r.slot,GearData).body;
+    const selectable=!GearModel.validate({...GearModel.normalize(r),target:s}).length;
+    const mode=state.matrixMode,e=matrixCache.cells.get(`${level}:${mastery}`);
+    const score=mode==='buff'?null:e?.[mode]??null;
+    const value=mode==='buff'?body.toFixed(2):efficiencyText(score);
+    const maximum=mode==='attack'?matrixCache.attackMax:matrixCache.defenseMax;
+    const heat=mode!=='buff'&&score>0&&maximum>0?`style="background-color:rgba(52,158,127,${(0.1+0.4*Math.sqrt(score/maximum)).toFixed(3)})"`:'';
+    return `<td class="${isC?'current-cell ':''}${isT?'target-cell ':''}${rarity==='mythic'&&level%20===0?'gate-cell':''}" ${isC||isT?'data-marker="true"':''}><button class="matrix-choice" ${heat} data-level="${level}" data-mastery="${mastery}" ${selectable?'':'disabled'} aria-label="${rarity==='mythic'?'神話':'通常'}レベル${level} 精錬${mastery}-0、${esc(value)}${mode==='buff'?'%':'pt／10万ダイヤ'}、${selectable?'目標に設定':'現在より低いか現在値が未入力'}">${esc(value)}${isC?'<b>現</b>':''}${isT?'<b>目</b>':''}</button></td>`;
+  }
+  function renderMatrix() {
+    const rarity=state.matrixRarity,min=rarity==='mythic'?1:0,mmin=rarity==='mythic'?10:0,mmax=rarity==='mythic'?20:10;
+    $('matrix-rarity').value=rarity;
+    $('matrix-mode').value=state.matrixMode;
+    if(state.matrixMode!=='buff')prepareMatrixCosts(rarity);
+    $('matrix-caption').textContent=`${GearModel.troopNames[state.troop]}・${GearModel.slotNames[state.slot]} `+(state.matrixMode==='buff'?`${state.slot==='goggles'||state.slot==='boots'?'殺傷力':'HP'}（本体＋精錬、参考％）`:state.matrixMode==='attack'?'攻撃＋殺傷の増加pt／10万ダイヤ':'防御＋HPの増加pt／10万ダイヤ');
+    $('efficiency-legend').hidden=state.matrixMode==='buff';
+    const levels=Array.from({length:101-min},(_,i)=>i+min);
+    const bonus=level=>rarity==='mythic'?GearModel.bonusAt(level,state.slot):{attack:0,defense:0};
+    $('matrix-table').innerHTML=`<thead><tr><th>精錬↓ / Lv→</th>${levels.map(l=>`<th class="${rarity==='mythic'&&l%20===0?'gate-cell':''}">${l}</th>`).join('')}</tr><tr><th>配能 攻撃 / 防御</th>${levels.map(l=>{const b=bonus(l);return `<th class="${rarity==='mythic'&&l%20===0?'gate-cell':''}">${b.attack}/${b.defense}</th>`;}).join('')}</tr></thead><tbody>${Array.from({length:mmax-mmin+1},(_,i)=>i+mmin).map(m=>`<tr><th>${m}-0</th>${levels.map(l=>matrixCell(rarity,l,m)).join('')}</tr>`).join('')}</tbody>`;
+    const r=row();
+    $('matrix-positions').textContent=`現在：${GearModel.stateLabel(GearModel.normalize(r).current)} ／ 目標：${GearModel.stateLabel(GearModel.normalize(r).target)}`;
+  }
+  function setMatrixTarget(level,mastery){
+    const r=row(),target={rarity:state.matrixRarity,level:parse(level),mastery:parse(mastery),sub:0};
+    const errors=GearModel.validate({...GearModel.normalize(r),target});
+    if(errors.length){state.notice=errors.join(' ');renderSummary();return false;}
+    checkpoint();r.target=target;r.targetEdited=true;
+    state.notice=`${GearModel.slotNames[r.slot]}の目標を${GearModel.stateLabel(target)}に設定しました。`;
+    refresh();return true;
+  }
+  function refresh(full=false) {
+    calculate();renderBag();renderSummary();renderRoutes();
+    if(full)renderEditor();
+    if(state.tab==='matrix')renderMatrix();
+  }
+  function selectTab(tab) {
+    if(tab==='matrix'&&state.tab!=='matrix')state.matrixRarity=row().target.rarity;
+    state.tab=tab;
+    document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
+    $('editor').hidden=!['current','target'].includes(tab);$('matrix-panel').hidden=tab!=='matrix';$('bag-panel').hidden=tab!=='bag';
+    refresh(true);
+  }
+  function update(key,value) {
+    const r=row(),s=r[state.tab];s[key]=value;
+    if(key==='rarity'){
+      if(value==='mythic'){s.level=Math.max(1,parse(s.level)||1);s.mastery=Math.max(10,parse(s.mastery)||10);}
+      else{s.level=Math.max(0,parse(s.level)||0);s.mastery=Math.min(10,parse(s.mastery)||0);}
     }
-    state.input = input;
-  }
-  function row(label, before, after, delta) {
-    return `<tr><td>${escape(label)}</td><td>${percent(before)}</td><td>${percent(after)}</td><td class="${delta > 0 ? 'gain' : ''}">${points(delta)}</td></tr>`;
-  }
-  function materialText(step) {
-    const parts = [];
-    if (step.xp) parts.push(`${number(step.xp)} XP`);
-    if (step.stones) parts.push(`源石 ${number(step.stones)}個`);
-    if (step.mithril) parts.push(`ミスリル ${number(step.mithril)}個`);
-    if (step.gear) parts.push(`素材装備 ${number(step.gear)}個`);
-    return parts.join(' / ');
-  }
-  function render() {
-    renderBag();
-    const r = state.result;
-    const valid = r && !r.errors.length;
-    for (const panel of ['cost-panel', 'stats-panel', 'route-panel']) $(panel).hidden = !valid;
-    $('placeholder').hidden = Boolean(r);
-    $('errors').hidden = !r?.errors.length;
-    $('errors').innerHTML = r?.errors.length ? `<ul>${r.errors.map(error => `<li>${escape(error)}</li>`).join('')}</ul>` : '';
-    $('save').disabled = !valid || state.busy;
-    $('export').disabled = !valid || state.busy || Boolean($('bag-error').textContent);
-    $('calculate').disabled = state.busy;
-    $('calculate').innerHTML = state.busy ? '<span class="spinner" aria-hidden="true"></span>計算中' : '計算する';
-    const target = GearModel.normalize(state.input).target;
-    $('fix-mastery').hidden = !(target.rarity === 'mythic' && Number.isInteger(target.level) && target.level >= 1 && target.level <= 100 && target.mastery < GearModel.minimumMastery(target));
-    for (const prefix of ['current', 'target']) {
-      const s = GearModel.normalize(state.input)[prefix];
-      $(prefix + '-level').setAttribute('aria-invalid', String(GearModel.validateState(s, '').some(e => /装備レベル/.test(e))));
+    const max=s.rarity==='mythic'?20:10;
+    if(parse(s.mastery)<4||parse(s.mastery)===max)s.sub=0;
+    if(state.tab==='target')r.targetEdited=true;
+    else if(!r.targetEdited)r.target=copy(s);
+    state.notice='';
+    refresh(key==='rarity');
+    if(key==='mastery'){
+      const disabled=parse(s.mastery)<4||parse(s.mastery)===max;
+      $('range-sub').disabled=disabled;$('number-sub').disabled=disabled;
+      if(disabled){$('range-sub').value=0;$('number-sub').value=0;}
     }
-    $('status').textContent = state.notice || (valid ? '入力を変更すると、結果を自動更新します。' : '入力を確認してください。');
-    if (!valid) return;
-    const { input, costs, before, after, delta, route } = r;
-    const troop = GearModel.troopNames[input.troop];
-    $('equipment-label').textContent = `${troop} / ${GearModel.slotNames[input.slot]}`;
-    const shortState = (s, label) => `<div><small>${label}</small><strong><span class="badge ${s.rarity}">${s.rarity === 'mythic' ? '神話' : '通常'}</span> Lv.${s.level}</strong><span>精錬 ${GearModel.forgeLabel(s)}</span></div>`;
-    $('transition').innerHTML = `${shortState(input.current, '現在')}<div class="arrow" aria-hidden="true">→</div>${shortState(input.target, '目標')}`;
-    $('cost-xp').textContent = number(costs.xp);
-    $('cost-stones').textContent = number(costs.stones);
-    $('cost-mithril').textContent = number(costs.mithril);
-    $('cost-gear').textContent = number(costs.totalGear);
-    $('gear-breakdown').innerHTML = `<span>神話化 ${costs.ascensionGear}</span><span>配能 ${costs.gateGear}</span><span>精錬 ${costs.forgeGear}</span>`;
-    const mythicStart = input.current.rarity === 'mythic' ? input.current.level : 1;
-    $('xp-note').hidden = !(input.target.rarity === 'mythic' && input.target.level >= 21 && mythicStart < 39);
-    $('stats-table').innerHTML = [
-      row(`${troop}攻撃力（配能）`, before.attack, after.attack, delta.attack),
-      row(`${troop}防御力（配能）`, before.defense, after.defense, delta.defense),
-      row(`${troop}殺傷力（本体＋精錬・参考）`, before.lethality, after.lethality, delta.lethality),
-      row(`${troop}HP（本体＋精錬・参考）`, before.health, after.health, delta.health)
-    ].join('');
-    const bodyName = before.stat === 'lethality' ? '殺傷力' : 'HP';
-    $('detail-table').innerHTML = [
-      row(`本体の${bodyName}（参考）`, before.base, after.base, delta.base),
-      row('精錬による増加（参考）', before.forge, after.forge, delta.forge),
-      row(`本体＋精錬の${bodyName}（参考）`, before.body, after.body, delta.body),
-      row('配能による攻撃力', before.attack, after.attack, delta.attack),
-      row('配能による防御力', before.defense, after.defense, delta.defense)
-    ].join('');
-    $('route-count').textContent = `${route.length}工程`;
-    $('route').innerHTML = route.length ? route.map(step => `<li class="${step.kind}"><div class="route-title">${escape(step.text)}</div><div class="route-meta">${escape(materialText(step))}</div>${step.detail ? `<div class="route-bonus">${escape(step.detail)}</div>` : ''}${step.steps ? `<details><summary>精錬${step.steps.length}段階の内訳</summary><div class="table-wrap"><table class="audit-table"><thead><tr><th>精錬</th><th>源石</th><th>素材装備</th></tr></thead><tbody>${step.steps.map(s => `<tr><td>${GearModel.forgeLabel(s.from)} → ${GearModel.forgeLabel(s.to)}</td><td>${s.stones}</td><td>${s.gear}</td></tr>`).join('')}</tbody></table></div></details>` : ''}</li>`).join('') : '<li><div class="route-title">現在と目標は同じ状態です。</div><div class="route-meta">追加素材は不要です。</div></li>';
   }
-  function calculate() {
-    state.result = GearModel.calculate(state.input, GearData);
-    let bag;
-    try { bag = normalizeBag(state.bag); } catch { /* 不正な所持数は保存しません。 */ }
-    if (!state.result.errors.length && state.storage && bag) {
-      try { localStorage.setItem(storageKey, JSON.stringify({ schemaVersion: 1, input: state.result.input, bag })); }
-      catch { state.storage = false; state.notice = '自動保存が利用できないため、必要に応じて入力をファイル保存してください。'; }
+  $('editor-fields').addEventListener('input',event=>{
+    const el=event.target,key=el.dataset.range||el.dataset.number;if(!key)return;
+    let value=el.value;
+    if(el.dataset.range&&state.tab==='target'){
+      const r=row(),c=GearModel.normalize(r).current,t=GearModel.normalize(r).target;
+      const floor=key==='level'?(c.rarity===t.rarity?c.level:(t.rarity==='mythic'?1:0)):key==='mastery'?c.mastery:(t.mastery===c.mastery?c.sub:0);
+      if(Number.isInteger(floor))value=String(Math.max(Number(value),floor));
+      el.value=value;$('range-'+key).value=value;
+      if(key==='mastery'&&Number(value)===c.mastery&&parse(r.target.sub)<c.sub){r.target.sub=c.sub;$('range-sub').value=c.sub;$('number-sub').value=c.sub;}
     }
-    render();
+    if(el.dataset.range)$('number-'+key).value=value;
+    else if(Number.isInteger(parse(value)))$('range-'+key).value=parse(value);
+    update(key,value);
+  });
+  $('editor-fields').addEventListener('pointerdown',checkpoint);
+  $('editor-fields').addEventListener('focusin',checkpoint);
+  $('rarity').addEventListener('change',event=>{checkpoint();update('rarity',event.target.value);});
+  $('enabled').addEventListener('change',event=>{checkpoint();row().enabled=event.target.checked;refresh();});
+  $('troop').addEventListener('change',event=>{state.troop=event.target.value;refresh(true);});
+  document.querySelectorAll('[data-slot]').forEach(b=>b.addEventListener('click',()=>{state.slot=b.dataset.slot;document.querySelectorAll('[data-slot]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.slot===state.slot)));refresh(true);}));
+  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>selectTab(b.dataset.tab)));
+  $('copy-current').addEventListener('click',()=>{checkpoint();row().target=copy(row().current);row().targetEdited=false;state.notice='目標を現在の状態に合わせました。';refresh(true);});
+  $('fix-condition').addEventListener('click',()=>{
+    const r=row(),s=GearModel.normalize(r).target;
+    if(!Number.isInteger(s.level)||s.level<(s.rarity==='mythic'?1:0)||s.level>100){state.notice='先に目標の強化レベルを入力してください。';renderSummary();return;}
+    s.mastery=Math.max(s.mastery||0,GearModel.minimumMastery(s));
+    const current=GearModel.normalize(r).current;
+    if(s.mastery<current.mastery)s.mastery=current.mastery;
+    if(s.mastery===current.mastery&&s.sub<current.sub)s.sub=current.sub;
+    if(s.rarity==='normal'&&s.level<20)s.mastery=0;
+    if(s.mastery=== (s.rarity==='mythic'?20:10)||s.mastery<4)s.sub=0;
+    checkpoint();r.target=s;r.targetEdited=true;state.notice='目標の精錬を強化レベルの必要条件に合わせました。';refresh(true);
+  });
+  $('copy-goals').addEventListener('click',()=>{
+    const goal=copy(row().target),rows=state.rows.filter(r=>r.troop===state.troop);
+    const errors=rows.flatMap(r=>GearModel.validate({...GearModel.normalize(r),target:GearModel.normalize({...r,target:goal}).target}).map(e=>GearModel.slotNames[r.slot]+'：'+e));
+    if(errors.length){state.notice='コピーできません。'+errors.join(' ');renderSummary();return;}
+    checkpoint();rows.forEach(r=>{r.target=copy(goal);r.targetEdited=true;});state.notice='この兵種の4部位に目標をコピーしました。';refresh(true);
+  });
+  for(const key of bagKeys){
+    $('bag-'+key).addEventListener('focusin',checkpoint);$('bag-range-'+key).addEventListener('pointerdown',checkpoint);$('bag-range-'+key).addEventListener('focusin',checkpoint);
+    $('bag-'+key).addEventListener('input',event=>{state.bag[key]=event.target.value;refresh();});
+    $('bag-range-'+key).addEventListener('input',event=>{state.bag[key]=event.target.value;$('bag-'+key).value=event.target.value;refresh();});
   }
-  function download(name, content, type) {
-    const url = URL.createObjectURL(new Blob(['\uFEFF', content], { type }));
-    const link = document.createElement('a');
-    link.href = url; link.download = name;
-    document.body.appendChild(link); link.click(); link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  $('matrix-rarity').addEventListener('change',event=>{state.matrixRarity=event.target.value;renderMatrix();});
+  $('matrix-mode').addEventListener('change',event=>{state.matrixMode=event.target.value;renderMatrix();});
+  $('matrix-table').addEventListener('click',event=>{const button=event.target.closest('button[data-level]');if(button&&!button.disabled){const wrap=$('matrix-table').parentElement;const x=wrap.scrollLeft,y=wrap.scrollTop;const level=button.dataset.level,mastery=button.dataset.mastery;setMatrixTarget(level,mastery);wrap.scrollLeft=x;wrap.scrollTop=y;$('matrix-table').querySelector(`button[data-level="${level}"][data-mastery="${mastery}"]`)?.focus({preventScroll:true});}});
+  $('undo').addEventListener('click',undo);
+  $('edit-target').addEventListener('click',()=>selectTab('target'));
+  $('locate-current').addEventListener('click',()=>locate('current'));
+  $('locate-target').addEventListener('click',()=>locate('target'));
+  function locate(side){const s=GearModel.normalize(row())[side];state.matrixRarity=s.rarity;renderMatrix();const cell=$('matrix-table').querySelector(side==='current'?'.current-cell':'.target-cell');if(cell)cell.scrollIntoView({block:'nearest',inline:'center'});}
+  function download(name,content,type){const url=URL.createObjectURL(new Blob(['\uFEFF',content],{type}));const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);}
+  $('export').addEventListener('click',()=>{if(!state.costs)return;download('英雄装備_12部位入力.json',JSON.stringify({schemaVersion:2,rows:state.rows,bag:validateBag(state.bag)},null,2),'application/json;charset=utf-8');});
+  $('import').addEventListener('click',()=>$('file').click());
+  async function loadFile(file){
+    if(!file)return;
+    try{if(file.size>131072)throw new Error('128KB以下の入力JSONを選んでください。');const buffer=await file.arrayBuffer();let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(buffer);}catch{text=new TextDecoder('shift_jis',{fatal:true}).decode(buffer);}const plan=JSON.parse(text.replace(/^\uFEFF/,''));
+      let loaded;
+      if(plan.schemaVersion===1&&plan.input){
+        const normalized=GearModel.normalize(plan.input);if(GearModel.validate(normalized).length)throw new Error('保存ファイルの育成状態が無効です。');
+        const rows=copy(state.rows),i=rows.findIndex(r=>r.troop===normalized.troop&&r.slot===normalized.slot);
+        rows[i]={...normalized,enabled:true,targetEdited:true};loaded=loadPlan({schemaVersion:2,rows,bag:plan.bag??state.bag});
+      }else loaded=plan.schemaVersion===1&&plan.rows?loadPlan({...plan,schemaVersion:2,bag:state.bag}):loadPlan(plan);
+      checkpoint();Object.assign(state,loaded);state.notice='12部位とバッグを読み込みました。';refresh(true);
+    }catch(error){state.notice='読み込めませんでした：'+error.message;renderSummary();}$('file').value='';
   }
-  function resultText(r) {
-    const troop = GearModel.troopNames[r.input.troop];
-    const lines = [
-      'ホワイトアウトサバイバル 英雄装備育成結果',
-      `${troop} / ${GearModel.slotNames[r.input.slot]}`,
-      `現在：${GearModel.stateLabel(r.input.current)}`,
-      `目標：${GearModel.stateLabel(r.input.target)}`, '',
-      `強化XP：${number(r.costs.xp)}`,
-      `精錬エナジー源石：${r.costs.stones}`,
-      `ミスリル：${r.costs.mithril}`,
-      `素材用レジェンド英雄装備：${r.costs.totalGear}`,
-      `内訳：神話化${r.costs.ascensionGear} / 配能${r.costs.gateGear} / 精錬${r.costs.forgeGear}`, '',
-      '遠征ステータス（この1部位の効果）'
-    ];
-    for (const [key, label] of [['attack','攻撃力（配能）'], ['defense','防御力（配能）'], ['lethality','殺傷力（本体＋精錬・参考）'], ['health','HP（本体＋精錬・参考）']]) lines.push(`${troop}${label}：${percent(r.before[key])} → ${percent(r.after[key])} / ${points(r.delta[key])}`);
-    lines.push('', '育成ルート', ...r.route.map((step, i) => `${i + 1}. ${step.text} / ${materialText(step)}${step.detail ? ' / ' + step.detail : ''}`));
-    try { const bag = normalizeBag(state.bag); lines.push('', 'バッグ：所持 / 不足', ...bagKeys.map(key => `${bagNames[key]}：${number(bag[key])} / ${number(Math.max(0,(key === 'gear' ? r.costs.totalGear : r.costs[key])-bag[key]))}`)); } catch { lines.push('', 'バッグ：所持数が不正のため不足数は未計算'); }
-    lines.push('', '数値確認：2026-10-05', '神話化直後＝Lv1。Lv途中の投入済みXP・対象装備は未集計。バッグの所持数は不足数にのみ反映。', 'XPは公式個別表を採用。神話Lv1→100＝501,050 XP。公式集計502,000 XPとの差は未解決。', '装備本体％は公式Wiki掲載計算資料に基づく参考値。全レベル実測・丸め方は未確認。', 'https://www.whiteoutsurvival.wiki/hero-gears/hero-gear/', 'https://docs.google.com/spreadsheets/d/112Gi0_kr85KHK-YOEG1zVsz33O3A7HLQH4ccONHZFRo/edit?usp=sharing');
-    return lines.join('\r\n');
-  }
-  $('gear-form').addEventListener('submit', async event => {
-    event.preventDefault();
-    const run = ++state.run;
-    readControls(); state.busy = true; render();
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    if (run !== state.run) return;
-    state.busy = false; state.notice = ''; calculate();
-  });
-  $('gear-form').addEventListener('input', event => {
-    if (event.target.tagName !== 'INPUT' || event.target.type === 'file') return;
-    state.run++; state.busy = false; state.notice = ''; readControls(); calculate();
-  });
-  $('gear-form').addEventListener('change', event => {
-    if (event.target.tagName !== 'SELECT') return;
-    state.run++; state.busy = false; state.notice = ''; readControls();
-    for (const prefix of ['current', 'target']) {
-      const s = state.input[prefix];
-      if (event.target.id === prefix + '-rarity') {
-        s.mastery = Math.min(s.rarity === 'mythic' ? 20 : 10, Math.max(s.rarity === 'mythic' ? 10 : 0, Number(s.mastery)));
-        if (s.rarity === 'mythic' && Number(s.level) === 0) s.level = 1;
-        if (s.mastery < 4 || s.mastery === (s.rarity === 'mythic' ? 20 : 10)) s.sub = 0;
-        syncControls(); state.notice = '装備種類に合わせて精錬の入力範囲を更新しました。';
-      } else if (event.target.id === prefix + '-mastery') {
-        if (Number(s.mastery) < 4 || Number(s.mastery) === (s.rarity === 'mythic' ? 20 : 10)) s.sub = 0;
-        configure(prefix);
-      }
-    }
-    calculate();
-  });
-  $('fix-mastery').addEventListener('click', () => {
-    const target = GearModel.normalize(state.input).target;
-    state.input.target.mastery = GearModel.minimumMastery(target);
-    state.input.target.sub = 0;
-    syncControls(); state.notice = '目標の精錬を必要条件に合わせました。'; calculate();
-  });
-  $('preset-example').addEventListener('click', () => {
-    state.input = { troop:'lancer', slot:'goggles', current:{rarity:'normal',level:82,mastery:8,sub:3}, target:{rarity:'mythic',level:65,mastery:13,sub:0} };
-    state.notice = '入力例を表示しました。'; syncControls(); calculate();
-  });
-  $('preset-max').addEventListener('click', () => {
-    state.input.current = {rarity:'mythic',level:1,mastery:10,sub:0};
-    state.input.target = {rarity:'mythic',level:100,mastery:15,sub:0};
-    state.notice = '神話化直後からLv100・精錬15までを表示しました。'; syncControls(); calculate();
-  });
-  $('export').addEventListener('click', () => {
-    if (!state.result || state.result.errors.length) return;
-    download('英雄装備_入力.json', JSON.stringify({ schemaVersion:1, dataAsOf:'2026-10-05', input:state.result.input, bag:normalizeBag(state.bag) }, null, 2), 'application/json;charset=utf-8');
-  });
-  $('save').addEventListener('click', () => {
-    if (!state.result || state.result.errors.length) return;
-    download('英雄装備_育成結果.txt', resultText(state.result), 'text/plain;charset=utf-8');
-  });
-  async function loadFile(file) {
-    if (!file) return;
-    try {
-      if (file.size > 65536) throw new Error('入力ファイルが大きすぎます。64KB以下のJSONを選んでください。');
-      let buffer;
-      try { buffer = await file.arrayBuffer(); }
-      catch { throw new Error('ファイルを読み取れませんでした。ファイルを選び直してください。'); }
-      let text;
-      try { text = new TextDecoder('utf-8', { fatal:true }).decode(buffer); }
-      catch {
-        try { text = new TextDecoder('shift_jis', { fatal:true }).decode(buffer); }
-        catch { throw new Error('文字コードを判定できません。UTF-8またはShift_JISのJSONファイルを選んでください。'); }
-      }
-      const input = parsePlan(text);
-      const bag = normalizeBag(JSON.parse(text.replace(/^\uFEFF/, '')).bag); state.bag = bag; state.input = copy(input); state.notice = '入力ファイルを読み込みました。'; syncControls(); calculate();
-    } catch (error) { state.notice = error instanceof Error ? error.message : '入力ファイルを読み込めませんでした。'; render(); }
-    $('file').value = '';
-  }
-  $('import').addEventListener('click', () => $('file').click());
-  $('file').addEventListener('change', event => loadFile(event.target.files[0]));
-  document.addEventListener('dragover', event => { if (event.dataTransfer.types.includes('Files')) event.preventDefault(); });
-  document.addEventListener('drop', event => {
-    if (!event.dataTransfer.files.length) return;
-    event.preventDefault();
-    if (event.dataTransfer.files.length !== 1) { state.notice = '入力ファイルは1つずつ読み込んでください。'; render(); return; }
-    loadFile(event.dataTransfer.files[0]);
-  });
-  $('gates-table').innerHTML = GearModel.gates.map(g => `<tr><td>${g.level - 1} → ${g.level}</td><td>${g.mastery}</td><td>${g.mithril}</td><td>${g.gear}</td></tr>`).join('');
-  $('forge-table').innerHTML = GearModel.forgeSteps({mastery:0,sub:0},{mastery:20,sub:0}).map(s => `<tr><td>${GearModel.forgeLabel(s.from)} → ${GearModel.forgeLabel(s.to)}</td><td>${s.stones}</td><td>${s.gear}</td><td>+${s.to.mastery * 10 + s.to.sub * 2}%</td></tr>`).join('');
-  $('xp-table').innerHTML = Array.from({length:100},(_,i) => i + 1).map(level => `<tr><td>${level}</td><td>${number(GearModel.normalXP(level))}</td><td>${number(GearModel.mythicXP(level))}</td></tr>`).join('');
-  for (const key of bagKeys) $('bag-' + key).addEventListener('input', event => { state.bag[key] = event.target.value; calculate(); });
-  document.addEventListener('batch-costs',event => { state.batchCosts = event.detail; renderBag(); });
-  syncControls(); calculate();
-})();
-
-</script>
-<script>
-(() => {
-  'use strict';
-  const $ = id => document.getElementById(id);
-  const keys = ['xp','stones','mithril','totalGear','ascensionGear','gateGear','forgeGear'];
-  const n = value => new Intl.NumberFormat('ja-JP').format(value);
-  const esc = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const clone = value => JSON.parse(JSON.stringify(value));
-  const initial = {rarity:'normal',level:0,mastery:0,sub:0};
-  const state = {mode:'batch',troop:'infantry',rows:Object.keys(GearModel.troopNames).flatMap(troop=>Object.keys(GearModel.slotNames).map(slot=>({troop,slot,enabled:true,current:clone(initial),target:clone(initial)}))),results:[],costs:null};
-  try {
-    const raw = localStorage.getItem('wos-hero-gear-batch-v1');
-    if (raw) {
-      const saved = JSON.parse(raw);
-      if (saved.schemaVersion === 1 && saved.rows?.length === 12 && state.rows.every((r,i)=>saved.rows[i].troop===r.troop && saved.rows[i].slot===r.slot && typeof saved.rows[i].enabled==='boolean' && saved.rows[i].current && saved.rows[i].target && (!saved.rows[i].enabled || !GearModel.validate(GearModel.normalize(saved.rows[i])).length))) state.rows= saved.rows;
-    } else {
-      const old = JSON.parse(localStorage.getItem('wos-hero-gear-plan-v1') || 'null');
-      if (old?.input && !GearModel.validate(GearModel.normalize(old.input)).length) {
-        const i = state.rows.findIndex(r=>r.troop===old.input.troop && r.slot===old.input.slot);
-        if(i>=0) { Object.assign(state.rows[i],clone(old.input)); state.troop=old.input.troop; $('batch-notice').textContent='前回の1部位入力を一括入力に引き継ぎました。他の部位は通常Lv0 → Lv0です。'; }
-      }
-    }
-  } catch { $('batch-notice').textContent='保存された一括入力を復元できないため、初期状態を表示しています。'; }
-  const bag = $('bag-panel');
-  const bagHome = bag.parentElement;
-  const stats = ['attack','defense','lethality','health'];
-  const statNames = ['攻撃','防御','殺傷（参考）','HP（参考）'];
-  function controls(row,index,prefix) {
-    const s=row[prefix];
-    return `<div class="batch-fields"><select aria-label="${GearModel.slotNames[row.slot]} ${prefix==='current'?'現在':'目標'} 種類" data-row="${index}" data-side="${prefix}" data-key="rarity"><option value="normal" ${s.rarity==='normal'?'selected':''}>通常</option><option value="mythic" ${s.rarity==='mythic'?'selected':''}>神話</option></select>${[['level','Lv'],['mastery','精錬'],['sub','段階']].map(([key,label])=>`<label>${label}<input type="text" inputmode="numeric" aria-label="${GearModel.slotNames[row.slot]} ${prefix==='current'?'現在':'目標'} ${label}" data-row="${index}" data-side="${prefix}" data-key="${key}" value="${esc(s[key])}"></label>`).join('')}</div>`;
-  }
-  function renderRows() {
-    $('batch-rows').innerHTML=state.rows.map((r,i)=>`<div class="batch-row" ${r.troop!==state.troop?'hidden':''}><div class="batch-slot"><label><input type="checkbox" data-row="${i}" data-key="enabled" ${r.enabled?'checked':''}>${GearModel.slotNames[r.slot]}</label></div><div><span class="helper">現在</span>${controls(r,i,'current')}</div><div><span class="helper">目標</span>${controls(r,i,'target')}</div><div id="batch-row-result-${i}" class="helper"></div></div>`).join('');
-    document.querySelectorAll('[data-troop]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.troop===state.troop)));
-  }
-  function calculate() {
-    const totals=Object.fromEntries(keys.map(k=>[k,0]));
-    state.results=state.rows.map(r=>r.enabled?GearModel.calculate(r,GearData):null);
-    const errors=[];
-    state.results.forEach((r,i)=>{
-      const label=GearModel.troopNames[state.rows[i].troop]+' '+GearModel.slotNames[state.rows[i].slot];
-      if(!r){$('batch-row-result-'+i).textContent='集計対象外';return;}
-      if(r.errors.length){ errors.push(...r.errors.map(e=>label+'：'+e)); $('batch-row-result-'+i).textContent=r.errors.join(' ');return; }
-      keys.forEach(k=>totals[k]+=r.costs[k]);
-      $('batch-row-result-'+i).textContent=`XP ${n(r.costs.xp)} / 源石 ${n(r.costs.stones)} / ミスリル ${n(r.costs.mithril)} / 装備 ${n(r.costs.totalGear)}`;
-    });
-    state.costs=errors.length?null:totals;
-    $('batch-errors').hidden=!errors.length;
-    $('batch-errors').innerHTML=errors.map(e=>`<div>${esc(e)}</div>`).join('');
-    $('batch-output').hidden=Boolean(errors.length);
-    $('batch-save').disabled=Boolean(errors.length);
-    if(!errors.length){
-      $('batch-total').innerHTML=[['xp','強化XP'],['stones','源石'],['mithril','ミスリル'],['totalGear','素材装備']].map(([k,label])=>`<div><span>${label}</span><strong>${n(totals[k])}</strong></div>`).join('');
-      $('batch-gear').textContent=`素材装備の内訳：神話化 ${n(totals.ascensionGear)} / 配能 ${n(totals.gateGear)} / 精錬 ${n(totals.forgeGear)}（対象 ${state.rows.filter(r=>r.enabled).length}部位）`;
-      $('batch-stats').innerHTML=Object.entries(GearModel.troopNames).map(([troop,name])=>{
-        const rs=state.results.filter((r,i)=>r && state.rows[i].troop===troop);
-        return `<details><summary>${name} · 遠征効果の合計</summary><table><thead><tr><th>効果</th><th>現在</th><th>目標</th><th>差分pt</th></tr></thead><tbody>${stats.map((k,j)=>{ const before=rs.reduce((s,r)=>s+r.before[k],0),after=rs.reduce((s,r)=>s+r.after[k],0);return `<tr><td>${statNames[j]}</td><td>${before.toFixed(2)}%</td><td>${after.toFixed(2)}%</td><td>${(after-before).toFixed(2)}</td></tr>`; }).join('')}</tbody></table></details>`;
-      }).join('');
-      $('batch-routes').innerHTML=state.results.map((r,i)=>r?`<details><summary>${GearModel.troopNames[state.rows[i].troop]} · ${GearModel.slotNames[state.rows[i].slot]}：${GearModel.stateLabel(r.input.current)} → ${GearModel.stateLabel(r.input.target)}</summary>${r.route.map(step=>`<p class="helper">${esc(step.text)}：XP ${n(step.xp||0)} / 源石 ${n(step.stones||0)} / ミスリル ${n(step.mithril||0)} / 装備 ${n(step.gear||0)}${step.detail?' / '+esc(step.detail):''}</p>`).join('')||'<p class="helper">追加素材は不要です。</p>'}</details>`:'').join('');
-      try { localStorage.setItem('wos-hero-gear-batch-v1',JSON.stringify({schemaVersion:1,rows:state.rows})); } catch { $('batch-notice').textContent='この環境では一括入力の自動保存が利用できません。'; }
-    }
-    document.dispatchEvent(new CustomEvent('batch-costs',{detail:state.mode==='batch'?state.costs:undefined}));
-  }
-  $('batch-rows').addEventListener('input',event=>{
-    const el=event.target;if(!el.dataset.key)return;
-    const r=state.rows[Number(el.dataset.row)];
-    if(el.dataset.key==='enabled')r.enabled=el.checked;
-    else r[el.dataset.side][el.dataset.key]=el.value;
-    calculate();
-  });
-  document.querySelectorAll('[data-troop]').forEach(b=>b.addEventListener('click',()=>{state.troop=b.dataset.troop;renderRows();calculate();}));
-  $('batch-copy').addEventListener('click',()=>{
-    const first=state.rows.find(r=>r.troop===state.troop);
-    state.rows.filter(r=>r.troop===state.troop).forEach(r=>{r.target=clone(first.target);});
-    renderRows();calculate();$('batch-notice').textContent='この兵種の4部位に、ゴーグルの目標状態をコピーしました。';
-  });
-  $('mode-toggle').addEventListener('click',()=>{
-    state.mode=state.mode==='batch'?'single':'batch';
-    $('batch-panel').hidden=state.mode==='single';$('single-workspace').hidden=state.mode==='batch';
-    $('mode-toggle').textContent=state.mode==='batch'?'1部位モードへ':'12部位モードへ';
-    if(state.mode==='batch')$('batch-bag').appendChild(bag);else bagHome.insertBefore(bag,$('stats-panel'));
-    calculate();
-  });
-  $('batch-save').addEventListener('click',()=>{
+  $('file').addEventListener('change',event=>loadFile(event.target.files[0]));
+  document.addEventListener('dragover',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
+  document.addEventListener('drop',event=>{if(!event.dataTransfer.files.length)return;event.preventDefault();if(event.dataTransfer.files.length===1)loadFile(event.dataTransfer.files[0]);});
+  $('result-save').addEventListener('click',()=>{
     if(!state.costs)return;
-    const names={xp:'強化XP',stones:'源石',mithril:'ミスリル',totalGear:'素材装備 合計',ascensionGear:'素材装備 神話化',gateGear:'素材装備 配能',forgeGear:'素材装備 精錬'};
-    const lines=['英雄装備 12部位一括計算',...keys.map(k=>`${names[k]}: ${n(state.costs[k])}`),...state.results.flatMap((r,i)=>r?[`${GearModel.troopNames[state.rows[i].troop]} ${GearModel.slotNames[state.rows[i].slot]}`,`${GearModel.stateLabel(r.input.current)} → ${GearModel.stateLabel(r.input.target)}`,...r.route.map(s=>s.text)]:[])];
-    lines.push('バッグ（所持 / 不足）',$('bag-table').innerText,'装備本体％は参考値。XP集計の950差は未解決。');
-    const url=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='英雄装備_12部位結果.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+    const costNames={xp:'強化XP',stones:'精錬エナジー源石',mithril:'ミスリル',totalGear:'素材装備合計',ascensionGear:'素材装備・神話化',gateGear:'素材装備・配能',forgeGear:'素材装備・精錬'};
+    const lines=['英雄装備12部位 育成結果',...Object.entries(state.costs).map(([k,v])=>`${costNames[k]}: ${num(v)}`)];
+    lines.push(`全対象部位のダイヤ換算：${num(GearModel.diamondValue(state.costs).total)}（金装備は期待額）`);
+    state.results.forEach((r,i)=>{if(!r||r.errors.length)return;lines.push('',`${GearModel.troopNames[state.rows[i].troop]}・${GearModel.slotNames[state.rows[i].slot]}`,`${GearModel.stateLabel(r.input.current)} → ${GearModel.stateLabel(r.input.target)}`,...[['body','主ステータス（参考）'],['attack','配能 攻撃'],['defense','配能 防御']].map(([k,label])=>`${label}: ${r.before[k].toFixed(2)} → ${r.after[k].toFixed(2)}%`),...r.route.map(s=>`${s.text} / XP ${s.xp||0} / 源石 ${s.stones||0} / ミスリル ${s.mithril||0} / 装備 ${s.gear||0}`));});
+    state.results.forEach((r,i)=>{if(!r||r.errors.length)return;const e=GearModel.growthEfficiency(r);lines.push(`${GearModel.troopNames[state.rows[i].troop]}・${GearModel.slotNames[state.rows[i].slot]} 効率：攻撃系 ${efficiencyText(e.attack)} / 防御系 ${efficiencyText(e.defense)} pt／10万ダイヤ（素材換算 ${num(e.diamonds.total)}ダイヤ）`);});
+    lines.push('', 'バッグ（必要 / 不足）',$('bag-summary').innerText,'金装備は1%独立抽選・天井なしの期待額200,000ダイヤ/個。副産物価値は含めません。','攻撃＋殺傷、防御＋HPを同じ重みで合算した素材効率。実際のダメージや耐久力ではありません。','装備本体％は参考値。公式総XPとの差950は未解決。');
+    download('英雄装備_育成結果.txt',lines.join('\r\n'),'text/plain;charset=utf-8');
   });
-  $('single-workspace').hidden=true;$('batch-bag').appendChild(bag);renderRows();calculate();
+  $('gates-table').innerHTML=GearModel.gates.map(g=>`<tr><td>${g.level-1}→${g.level}</td><td>${g.mastery}</td><td>${g.mithril}</td><td>${g.gear}</td></tr>`).join('');
+  $('forge-table').innerHTML=GearModel.forgeSteps({mastery:0,sub:0},{mastery:20,sub:0}).map(s=>`<tr><td>${GearModel.forgeLabel(s.from)}→${GearModel.forgeLabel(s.to)}</td><td>${s.stones}</td><td>${s.gear}</td><td>+${s.to.mastery*10+s.to.sub*2}%</td></tr>`).join('');
+  $('xp-table').innerHTML=Array.from({length:100},(_,i)=>i+1).map(l=>`<tr><td>${l}</td><td>${num(GearModel.normalXP(l))}</td><td>${num(GearModel.mythicXP(l))}</td></tr>`).join('');
+  if(typeof ResizeObserver!=='undefined'){
+    const dock=document.querySelector('.live');
+    new ResizeObserver(entries=>{document.documentElement.style.setProperty('--dock-height',Math.ceil(entries[0].contentRect.height+32)+'px');}).observe(dock);
+  }
+  selectTab('current');
 })();
-
-</script>
-</body>
-</html>
+</script></body></html>
